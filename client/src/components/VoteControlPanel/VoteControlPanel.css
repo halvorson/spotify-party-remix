@@ -1,0 +1,19 @@
+.voteSelector {
+	display: inline-block;
+	color: red;
+	font-size: 16px;
+}
+
+.voteSelector p {
+	margin: 0px;
+}
+
+.voteControlPanel {
+	font-size: 36px;
+	margin: auto;
+	padding: auto;
+}
+
+.vote {
+	margin: 20px 0px;
+}

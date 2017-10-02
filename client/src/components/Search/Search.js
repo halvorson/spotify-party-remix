@@ -21,33 +21,8 @@ const Search = props => (
 					</button>
 				</div>
 			</div>
-			<div className="form-row">
-				<div className="col form-group">
-					<label className="form-control-label" htmlFor="startYear">
-						From:
-					</label>
-					<input
-						name="startYear"
-						type="number"
-						onChange={props.handleInputChange}
-						className="form-control"
-						placeholder="Start Year"
-					/>
-				</div>
-				<div className="col form-group">
-					<label className="form-control-label" htmlFor="endYear">
-						To:
-					</label>
-					<input
-						name="endYear"
-						type="number"
-						onChange={props.handleInputChange}
-						className="form-control"
-						placeholder="End Year"
-					/>
-				</div>
-			</div>
 		</form>
+		<div className="container">{props.children}</div>
 	</div>
 );
 

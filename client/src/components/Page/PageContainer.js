@@ -1,47 +1,73 @@
 import React, { Component } from "react";
 import Page from "./Page";
 import API from "../../utils/API";
+import axios from "axios";
 
 class PageContainer extends Component {
   constructor() {
     super();
     this.state = {
-      searchArticles: [],
-      savedArticles: []
+      loggedIn: false,
+      user: {},
+      playlistId: "59cf42616097915eb8d61e32"
     };
   }
 
   componentWillMount() {
-    this.refreshSavedArticles();
+    console.log("Trying to get user");
+    API.getUser()
+      .then(user => {
+        this.setState({
+          loggedIn: true,
+          user: user
+        });
+      })
+      .catch(err => {
+        this.setState({
+          loggedIn: false,
+          user: null
+        });
+        console.log(err);
+      });
   }
 
   componentDidMount() {}
 
-  searchCallback = searchQueryFromChild => {
-    //this.setState({ searchQuery: searchQueryFromChild});
-    //console.log(searchQueryFromChild);
-    API.getArticles(searchQueryFromChild)
-      .then(res => {
-        //console.log(res.data);
-        this.setState({ searchArticles: res.data.response.docs });
-      })
-      .catch(err => console.log(err));
-  };
-
-  refreshSavedArticles = () => {
-    API.getSavedArticles().then(res => {
-      //console.log(res.data);
-      this.setState({ savedArticles: res.data });
+  refreshUserToken = () => {
+    API.refreshUserToken().then(refreshedUser => {
+      this.setState({ loggedIn: true, user: refreshedUser });
     });
   };
+
+  logout = event => {
+    event.preventDefault();
+    console.log("logging out");
+    axios.post("/auth/logout").then(response => {
+      console.log(response.data);
+      if (response.status === 200) {
+        this.setState({
+          loggedIn: false,
+          user: null
+        });
+      }
+    });
+  };
+
+  setPlaylistId = playlistId => {
+    this.setState({playlistId: playlistId})
+  }
+
+
 
   render() {
     return (
       <Page
-        searchCallback={this.searchCallback}
-        articles={this.state.searchArticles}
-        savedArticles={this.state.savedArticles}
-        refreshSavedArticles={this.refreshSavedArticles}
+        user={this.state.user}
+        loggedIn={this.state.loggedIn}
+        logout={this.logout}
+        refreshUserToken={this.refreshUserToken}
+        playlistId={this.state.playlistId}
+        setPlaylistId={this.state.setPlaylistId}
       />
     );
   }

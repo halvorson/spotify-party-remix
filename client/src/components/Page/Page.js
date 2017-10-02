@@ -1,23 +1,24 @@
 import React from "react";
-import Header from "../Header";
 import SearchContainer from "../Search";
 import Container from "../Bootstrap/Container";
-import ResultsContainer from "../Results";
-import SavedContainer from "../Saved";
+import PlaylistContainer from "../Playlist";
+import Login from "../Login";
+import SetupContainer from "../Setup";
 
 const Page = props => (
 	<div>
-		<Header />
+		<h1>This is the main App component</h1>
 		<Container>
-			<SearchContainer searchCallback={props.searchCallback} />
-			<ResultsContainer
-				articles={props.articles}
-				refreshSavedArticles={props.refreshSavedArticles}
-			/>
-			<SavedContainer
-				savedArticles={props.savedArticles}
-				refreshSavedArticles={props.refreshSavedArticles}
-			/>
+			<Login {...props} />
+		</Container>
+		<Container>
+			<SetupContainer {...props}/> 
+		</Container>
+		<Container>
+			<PlaylistContainer {...props} />
+		</Container>
+		<Container>
+			<SearchContainer {...props} />
 		</Container>
 	</div>
 );

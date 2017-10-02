@@ -1,7 +1,11 @@
 const router = require("express").Router();
-const articleRoutes = require("./articles");
+const trackRoutes = require("./tracks");
+const playlistRoutes = require("./playlists");
 
-// Articles routes
-router.use("/articles", articleRoutes);
+
+// Playlist routes
+router.use("/playlists", playlistRoutes);
+
+router.use("/tracks", trackRoutes);
 
 module.exports = router;
