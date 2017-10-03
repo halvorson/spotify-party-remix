@@ -3,8 +3,14 @@ var SpotifyStrategy = require("passport-spotify").Strategy;
 var refresh = require("passport-oauth2-refresh");
 
 var User = require("../models/user");
-var config = require("../config.js") || null;
+var config = null;
 var init = require("./init");
+
+try {
+  config = require("../config.js");
+} catch (err) {
+  console.log(err);
+}
 
 let spotifyStrategyItem;
 if (config) {
