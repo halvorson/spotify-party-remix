@@ -1,6 +1,10 @@
 import axios from "axios";
 import openSocket from "socket.io-client";
-const socket = openSocket(process.env.PUBLIC_URL || "http://localhost:3001");
+const socket = openSocket(
+	process.env.NODE_ENV === "development"
+		? "http://localhost:3001/"
+		: "https://spotify-party-remix.herokuapp.com"
+);
 
 // Export an object containing methods we'll use for accessing the Dog.Ceo API
 
