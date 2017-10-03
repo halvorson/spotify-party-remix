@@ -1,6 +1,6 @@
 import axios from "axios";
 import openSocket from "socket.io-client";
-const socket = openSocket("http://localhost:3001");
+const socket = openSocket(process.env.PUBLIC_URL || "http://localhost:3001");
 
 // Export an object containing methods we'll use for accessing the Dog.Ceo API
 
@@ -60,6 +60,7 @@ export default {
 	subscribeToTimer: (interval, cb) => {
 		socket.on("timer", timestamp => cb(null, timestamp));
 		socket.emit("subscribeToTimer", interval);
+		console.log(process.env);
 	},
 	subscribeToPlaylistUpdates: (playlistId, cb) => {
 		socket.on("refresh", refresh => cb(null, refresh));
