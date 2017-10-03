@@ -1,4 +1,6 @@
 import axios from "axios";
+import openSocket from "socket.io-client";
+const socket = openSocket("http://localhost:3001");
 
 // Export an object containing methods we'll use for accessing the Dog.Ceo API
 
@@ -55,6 +57,14 @@ export default {
 			});
 		});
 	},
+	subscribeToTimer: (interval, cb) => {
+		socket.on("timer", timestamp => cb(null, timestamp));
+		socket.emit("subscribeToTimer", interval);
+	},
+	subscribeToPlaylistUpdates: (playlistId, cb) => {
+		socket.on("refresh", refresh => cb(null, refresh));
+		socket.emit("subscribeToPlaylistUpdates", playlistId);
+	},
 	createPlaylist: function(
 		trackList,
 		userName,
@@ -77,7 +87,8 @@ export default {
 				locationLat: locationLat,
 				geoLocked: geoLocked,
 				isSearchable: isSearchable,
-				creatorUserName: userName
+				creatorUserName: userName,
+				totalVotes: 3
 			};
 			axios
 				.post("/api/playlists/", playlistData)
@@ -89,10 +100,12 @@ export default {
 				});
 		});
 	},
-	voteForTrack: function(trackId, userId, votes) {
+	voteForTrack: function(trackId, userId, votes, playlistId) {
+		console.log("voting for playlistId: " + playlistId);
 		return axios.post("/api/tracks/" + trackId + "/vote", {
 			voter: userId,
-			votes: votes
+			votes: votes,
+			playlistId: playlistId
 		});
 	},
 	addTrackToPlaylist: function(track, playlistId) {
@@ -102,6 +115,8 @@ export default {
 		});
 	},
 	getDbPlaylist: function(playlistId, userId) {
+		console.log(playlistId);
+		console.log(userId);
 		return axios.get("/api/playlists/" + playlistId + "/user/" + userId);
 	},
 	deleteSavedArticle: function(id) {

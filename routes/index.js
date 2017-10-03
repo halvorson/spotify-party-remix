@@ -35,7 +35,7 @@ router.get(
 // this route is just used to get the user basic info
 router.get("/auth/user", (req, res, next) => {
 	console.log("===== user!!======");
-	console.log(req.user);
+	console.log(req.user.spotifyId);
 	//console.log(req);
 	if (req.user) {
 		return res.json({ user: req.user });

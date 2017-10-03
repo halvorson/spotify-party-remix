@@ -1,4 +1,6 @@
 const db = require("../models");
+const clientsController = require("./clientsController.js");
+const playlistsController = require("./playlistsController.js");
 
 // Defining methods for the tracksController
 module.exports = {
@@ -31,6 +33,8 @@ module.exports = {
 							)
 							.then(() => {
 								console.log("Pushed to user");
+								clientsController.refresh(req.body.playlistId);
+								playlistsController.reorderPlaylist(req.body.playlistId);
 								res.json();
 							})
 							.catch(err => res.status(422).json(err));

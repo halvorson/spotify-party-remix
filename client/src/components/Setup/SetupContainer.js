@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import Setup from "./Setup";
 import SpotifyPlaylistContainer from "../SpotifyPlaylist";
 import Container from "../Bootstrap/Container";
+import API from "../../utils/API";
 
 class SetupContainer extends Component {
   constructor() {
@@ -17,22 +18,22 @@ class SetupContainer extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.user) {
-      // API.getSpotifyPlaylists(
-      //   nextProps.user.spotifyId,
-      //   nextProps.user.accessToken
-      // )
-      //   .then(res => {
-      //     console.log(res.data.items);
-      //     this.setState({ playlistList: res.data.items });
-      //   })
-      //   .catch(err => {
-      //     console.log(err);
-      //     if (err.response.status === 401) {
-      //       //Refresh token if needed
-      //       this.props.refreshUserToken();
-      //     }
-      //   });
-      console.log("Should be loading playlists, commented out in SetupContainer.js")
+      API.getSpotifyPlaylists(
+        nextProps.user.spotifyId,
+        nextProps.user.accessToken
+      )
+        .then(res => {
+          console.log(res.data.items);
+          this.setState({ playlistList: res.data.items });
+        })
+        .catch(err => {
+          console.log(err);
+          if (err.response.status === 401) {
+            //Refresh token if needed
+            this.props.refreshUserToken();
+          }
+        });
+      // console.log("Should be loading playlists, commented out in SetupContainer.js")
     } else {
       //no api call, return loading screen
     }

@@ -25,7 +25,7 @@ const trackSchema = new Schema({
 	hasPlayed: { type: Boolean, default: false },
 	playedAt: {type: Number, default: null},
 	duration: Number,
-	order: {type: Number, default: null}
+	order: {type: Number, default: 150}
 	//Need to populate duration throughout
 });
 

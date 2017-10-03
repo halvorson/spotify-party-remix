@@ -5,7 +5,7 @@ import API from "../../utils/API";
 class VoteControlPanelContainer extends Component {
   constructor() {
     super();
-    this.state = {userVotes: 0};
+    this.state = { userVotes: 0 };
   }
 
   componentDidMount() {}
@@ -14,27 +14,28 @@ class VoteControlPanelContainer extends Component {
     const userId = this.props.user._id;
     const trackId = this.props.track._id;
     const userVotes = this.state.userVotes;
-    API.voteForTrack(trackId, userId, userVotes);
+    const playlistId = this.props.playlistId;
+    console.log(this.props);
+    API.voteForTrack(trackId, userId, userVotes, playlistId);
+    this.setState({ userVotes: 0 });
   };
 
   increaseVote = () => {
-    if(this.allowVotes()) {
+    if (this.allowVotes()) {
       const newVoteTally = this.state.userVotes + 1;
-      this.setState({userVotes: newVoteTally})
+      this.setState({ userVotes: newVoteTally });
     }
-    console.log("Increasing vote");
   };
 
   allowVotes = () => {
     return true;
-  }
+  };
 
   decreaseVote = () => {
-    if(this.allowVotes()) {
+    if (this.allowVotes()) {
       const newVoteTally = this.state.userVotes - 1;
-      this.setState({userVotes: newVoteTally})
+      this.setState({ userVotes: newVoteTally });
     }
-    console.log("Increasing vote");
   };
 
   getCurrentUserVote = () => {};
