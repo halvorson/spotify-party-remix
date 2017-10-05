@@ -43,7 +43,7 @@ class SearchContainer extends Component {
           handleFormSubmit={this.handleFormSubmit}
           handleInputChange={this.handleInputChange}
         >
-          <div>
+          <div className="list-group">
             {this.state.searchResults.map(item => {
               return (
                 <Track track={item} key={item.id}>

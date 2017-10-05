@@ -10,7 +10,7 @@ class SpotifyPlaylistContainer extends Component {
   }
 
   componentWillMount() {
-    console.log();
+    //console.log();
     API.getSpotifyPlaylist(this.props.playlistHref, this.props.user.accessToken)
       .then(res => {
         //console.log(res.data.tracks.items);
@@ -19,14 +19,26 @@ class SpotifyPlaylistContainer extends Component {
           item.toBeImported = true;
         });
         this.setState({ trackList: items });
-        console.log(items);
+        //console.log(items);
       })
       .catch(err => console.log(err));
   }
 
   componentDidMount() {}
 
-  componentWillReceiveProps(nextProps) {}
+  componentWillReceiveProps(nextProps) {
+    API.getSpotifyPlaylist(nextProps.playlistHref, nextProps.user.accessToken)
+      .then(res => {
+        //console.log(res.data.tracks.items);
+        let items = res.data.tracks.items;
+        items.forEach(function(item) {
+          item.toBeImported = true;
+        });
+        this.setState({ trackList: items });
+        //console.log(items);
+      })
+      .catch(err => console.log(err));
+  }
 
   handleInputChange = event => {
     //event.preventDefault();
@@ -46,7 +58,7 @@ class SpotifyPlaylistContainer extends Component {
     //this.setState({ trackList: newTrackList });
   };
 
-  createPlaylist = () => {
+  getCheckedTracks = () => {
     let newPlaylist = [];
     const userId = this.props.user._id;
     this.state.trackList.forEach(function(item) {
@@ -64,14 +76,9 @@ class SpotifyPlaylistContainer extends Component {
         });
       }
     });
-    console.log(this.props.user);
-    API.createPlaylist(
-      newPlaylist,
-      this.props.user.spotifyId,
-      this.props.user.accessToken
-    ).then(res => {
-      this.setState({ savedPlaylistId: res.SPRId });
-    });
+    return newPlaylist;
+    //console.log(this.props.user);
+    
   };
 
   //In future, add ability to re-sort and ability to shuffle
@@ -94,11 +101,6 @@ class SpotifyPlaylistContainer extends Component {
               </Track>
             );
           })}
-        </div>
-        <div>
-          <button className="btn btn-secondary" onClick={this.createPlaylist}>
-            Submit
-          </button>
         </div>
       </div>
     );

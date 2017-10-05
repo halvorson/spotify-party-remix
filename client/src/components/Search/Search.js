@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 const Search = props => (
 	<div className="card">
-		<h4 className="card-header bg-primary text-white">Search</h4>
+		<h4 className="card-header bg-primary text-white">Add new track</h4>
 		<form className="card-body" onSubmit={props.handleFormSubmit}>
 			<div className="form-row">
 				<div className="form-group col-sm-10">
@@ -12,7 +12,7 @@ const Search = props => (
 						className="form-control"
 						onChange={props.handleInputChange}
 						id="formGroupExampleInput"
-						placeholder="Search Query"
+						placeholder="Spotify Track Search"
 					/>
 				</div>
 				<div className="form-group col-sm-2">

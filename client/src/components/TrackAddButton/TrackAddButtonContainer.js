@@ -11,14 +11,15 @@ class TrackAddButtonContainer extends Component {
   componentDidMount() {}
 
   addTrack = () => {
+    const albumArtSmallUrl = {};
     const track = {
       name: this.props.track.name,
       artist: this.props.track.artists[0].name,
       album: this.props.track.album.name,
       spotifyId: this.props.track.id,
-      albumArtSmallUrl: this.props.track.album.images[2].url,
-      albumArtMedUrl: this.props.track.album.images[1].url,
-      albumArtLargeUrl: this.props.track.album.images[0].url,
+      albumArtSmallUrl: (this.props.track.album.images ? this.props.track.album.images[2].url : null),
+      albumArtMedUrl: (this.props.track.album.images ? this.props.track.album.images[1].url : null),
+      albumArtLargeUrl: (this.props.track.album.images ? this.props.track.album.images[0].url : null),
       addedBy: this.props.user._id,
       duration: this.props.track.duration_ms
     };

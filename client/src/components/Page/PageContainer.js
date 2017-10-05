@@ -9,7 +9,8 @@ class PageContainer extends Component {
     this.state = {
       loggedIn: false,
       user: {},
-      playlistId: "59d1d5ead8caff715e96256b"
+      playlistId: null,
+      isHost: false
     };
   }
 
@@ -17,10 +18,9 @@ class PageContainer extends Component {
     console.log("Trying to get user");
     API.getUser()
       .then(user => {
-        this.setState({
-          loggedIn: true,
-          user: user
-        });
+        console.log("Got user, refreshing token...");
+        this.refreshUserToken();
+        this.state.refreshIntervalId = setInterval(this.refreshUserToken(), 3300000);
       })
       .catch(err => {
         this.setState({
@@ -31,11 +31,21 @@ class PageContainer extends Component {
       });
   }
 
-  componentDidMount() {}
+  componentWillUnmount() {
+    clearInterval(this.state.refreshIntervalId);
+  }
+
+  componentDidMount() {
+    //this.setState({ isHost: false, playlistId: "59d507a084c9d07fcdc86544" });
+    
+  }
 
   refreshUserToken = () => {
+    //console.log("Old access token: " + this.state.user.accessToken)
     API.refreshUserToken().then(refreshedUser => {
-      this.setState({ loggedIn: true, user: refreshedUser });
+      console.log("Got refreshed token!");
+      this.setState({ loggedIn: true, user: refreshedUser.data.user });
+      //console.log("New access token: " + this.state.user.accessToken)
     });
   };
 
@@ -43,7 +53,7 @@ class PageContainer extends Component {
     event.preventDefault();
     console.log("logging out");
     axios.post("/auth/logout").then(response => {
-      console.log(response.data);
+      //console.log(response.data);
       if (response.status === 200) {
         this.setState({
           loggedIn: false,
@@ -53,11 +63,30 @@ class PageContainer extends Component {
     });
   };
 
+  setHostToTrue = () => {
+    this.setState({ isHost: true });
+  };
+
+  setHostToFalse = () => {
+    this.setState({ isHost: false });
+  };
+
   setPlaylistId = playlistId => {
-    this.setState({playlistId: playlistId})
-  }
+    this.setState({ playlistId: playlistId });
+  };
 
+  createNewPlaylist = () => {
+    console.log("Create new playlist triggered");
+    this.setState({ isHost: true, playlistId: null });
+  };
 
+  stateDidChange = () => {
+    //console.log(this.state);
+  };
+
+  goHome = () => {
+    this.setState({ playlistId: null, isHost: false });
+  };
 
   render() {
     return (
@@ -67,7 +96,12 @@ class PageContainer extends Component {
         logout={this.logout}
         refreshUserToken={this.refreshUserToken}
         playlistId={this.state.playlistId}
-        setPlaylistId={this.state.setPlaylistId}
+        setPlaylistId={this.setPlaylistId}
+        isHost={this.state.isHost}
+        createNewPlaylist={this.createNewPlaylist}
+        goHome={this.goHome}
+        setHostToFalse={this.setHostToFalse}
+        setHostToTrue={this.setHostToTrue}
       />
     );
   }

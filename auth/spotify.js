@@ -46,10 +46,14 @@ var spotifyStrategy = new SpotifyStrategy(spotifyStrategyItem, function(
       spotifyId: profile.id
     };
 
+    let now = new Date();
+    let nowTime = now.getTime();
+
     var updates = {
       name: profile.displayName,
       accessToken: accessToken,
-      refreshToken: refreshToken
+      refreshToken: refreshToken,
+      refreshedTimestamp: nowTime,
     };
 
     var options = {

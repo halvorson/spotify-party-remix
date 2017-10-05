@@ -27,7 +27,7 @@ router.get(
 	passportSpotify.authenticate("spotify", { failureRedirect: "/login" }),
 	function(req, res) {
 		// Successful authentication
-		console.log(req.user);
+		//console.log(req.user);
 		res.redirect("/");
 	}
 );
@@ -48,6 +48,7 @@ router.get("/auth/refreshToken", (req, res, next) => {
 	console.log("-------Refreshing Token--------");
 	console.log("Old token: " + req.user.accessToken);
 	usersController.refreshToken(req.user).then(newUser => {
+		console.log("New token:" + newUser.accessToken);
 		return res.json({ user: newUser });
 	});
 });

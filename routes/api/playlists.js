@@ -7,6 +7,10 @@ router
 	.get(playlistsController.findAll)
 	.post(playlistsController.create);
 
+router.route("/start").post(playlistsController.startPlaying);
+
+router.route("/search").get(playlistsController.searchPlaylists);
+
 // Matches with "/api/playlists/:id"
 router
 	.route("/:id")

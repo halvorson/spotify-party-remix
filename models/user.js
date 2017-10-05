@@ -8,6 +8,7 @@ const userSchema = new Schema({
 	spotifyId: String,
 	accessToken: String,
 	refreshToken: String,
+	refreshedTimestamp: Number,
 	trackVotes: [
 		{
 			type: Schema.Types.ObjectId,

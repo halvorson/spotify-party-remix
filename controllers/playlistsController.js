@@ -7,9 +7,9 @@ const clientsController = require("./clientsController.js");
 // Defining methods for the playlistController
 module.exports = {
 	findAll: function(req, res) {
-		db.trackList
-			.find(req.query)
-			.sort({ date: -1 })
+		db.TrackList
+			.find({})
+			.sort({ _id: -1 })
 			.then(dbModel => res.json(dbModel))
 			.catch(err => {
 				console.log(err);
@@ -179,12 +179,14 @@ module.exports = {
 								db.TrackList
 									.create({
 										name: req.body.playlistName,
+										nameLower: req.body.playlistName.toLowerCase(),
 										locationName: req.body.locationName,
 										locationLong: req.body.locationLong,
 										locationLat: req.body.locationLat,
 										spotifyPlaylistId: spotifyPlaylistId,
 										isSearchable: req.body.isSearchable,
 										geoLocked: req.body.geoLocked,
+										createdBy: req.body.createdBy,
 										tracks: trackIds
 									})
 									.then(obj => {
@@ -220,43 +222,50 @@ module.exports = {
 			playlistInfo
 		) => {
 			return new Promise((resolve, reject) => {
-				const tokenStr = "Bearer " + Michael.accessToken;
-				axios
-					.post(newPlaylistUrl, newPlaylistBody, {
-						headers: {
-							Authorization: tokenStr,
-							"Content-Type": "application/json"
-						}
-					})
-					.then(pl => {
-						module.exports
-							.addTracksToSpotify(pl, req.body.trackList, Michael)
-							.then(spotifyPlaylistId => {
-								resolve(spotifyPlaylistId);
-							});
-					})
-					.catch(err => {
-						console.log("Error coming from createNewPlaylist");
-						console.log(err);
-						if (err.response.status === 401) {
-							usersController.refreshToken(Michael).then(user => {
-								createNewPlaylist(
-									newPlaylistBody,
-									newPlaylistUrl,
-									user,
-									playlistInfo
-								);
-							});
-						} else {
-							reject(err);
-						}
-					});
+				usersController.checkUserAndRefresh(Michael).then(user => {
+					const tokenStr = "Bearer " + user.accessToken;
+					axios
+						.post(newPlaylistUrl, newPlaylistBody, {
+							headers: {
+								Authorization: tokenStr,
+								"Content-Type": "application/json"
+							}
+						})
+						.then(pl => {
+							module.exports
+								.addTracksToSpotify(
+									pl,
+									req.body.trackList,
+									Michael
+								)
+								.then(spotifyPlaylistId => {
+									resolve(spotifyPlaylistId);
+								});
+						})
+						.catch(err => {
+							console.log("Error coming from createNewPlaylist");
+							console.log(err);
+							if (err.response.status === 401) {
+								usersController
+									.refreshToken(Michael)
+									.then(user => {
+										createNewPlaylist(
+											newPlaylistBody,
+											newPlaylistUrl,
+											user,
+											playlistInfo
+										);
+									});
+							} else {
+								reject(err);
+							}
+						});
+				});
 			});
 		};
 	},
 	addTracksToSpotify: (pl, trackList, Michael) => {
 		return new Promise((resolve, reject) => {
-			const tokenStr = "Bearer " + Michael.accessToken;
 			const spotifyPlaylistId = pl.data.id;
 			const addTracksUrl =
 				"https://api.spotify.com/v1/users/" +
@@ -264,8 +273,10 @@ module.exports = {
 				"/playlists/" +
 				spotifyPlaylistId +
 				"/tracks";
+			console.log(trackList);
 			let spotifyTrackUris = trackList.map(function(t) {
 				let spotifyUri;
+				console.log(t);
 				if (typeof t === "string") {
 					spotifyUri = t;
 				} else {
@@ -273,18 +284,22 @@ module.exports = {
 				}
 				return "spotify:track:" + spotifyUri;
 			});
-			axios
-				.post(addTracksUrl, spotifyTrackUris, {
-					headers: {
-						Authorization: tokenStr
-					}
-				})
-				.then(() => {
-					resolve(spotifyPlaylistId);
-				})
-				.catch(err => {
-					reject(err);
-				});
+			console.log("Adding tracks to Spotify: " + spotifyTrackUris);
+			usersController.checkUserAndRefresh(Michael).then(user => {
+				const tokenStr = "Bearer " + user.accessToken;
+				axios
+					.post(addTracksUrl, spotifyTrackUris, {
+						headers: {
+							Authorization: tokenStr
+						}
+					})
+					.then(() => {
+						resolve(spotifyPlaylistId);
+					})
+					.catch(err => {
+						reject(err);
+					});
+			});
 		});
 		//console.log(pl);
 	},
@@ -375,6 +390,9 @@ module.exports = {
 		//This needs to check which songs have played, then reorder the spotify playlist if need be
 		//Count number of played songs, then just nuke the next 100 songs
 		//Replace based on new order
+		console.log(
+			"newTrackList at beginning of syncWithSpotify: " + newTrackList
+		);
 
 		//Get Michael's tokens
 		db.User
@@ -383,92 +401,405 @@ module.exports = {
 				//console.log(err);
 				//console.log(obj);
 				const Michael = obj;
-				const tokenStr = "Bearer " + Michael.accessToken;
 
 				const getSpotifyPlaylistUrl =
 					"https://api.spotify.com/v1/users/" +
 					obj.spotifyId +
 					"/playlists/" +
 					spotifyPlaylistId;
-				axios
-					.get(getSpotifyPlaylistUrl, {
-						headers: {
-							Authorization: tokenStr,
-							"Content-Type": "application/json"
-						}
-					})
-					.then(spl => {
-						const spotifyPlaylistSnapshotId = spl.data.snapshot_id;
-						//console.log("returned playlist:");
-						//console.log(spl.data);
-						const splLength = spl.data.tracks.items.length;
-						const removeTracksUrl =
-							"https://api.spotify.com/v1/users/" +
-							obj.spotifyId +
-							"/playlists/" +
-							spotifyPlaylistId +
-							"/tracks";
-						let removedPositionArray = [];
-						for (let i = playedTracks; i < splLength; i++) {
-							removedPositionArray.push(i);
-						}
-						const deleteBody = {
-							positions: removedPositionArray,
-							snapshot_id: spotifyPlaylistSnapshotId
-						};
+
+				usersController
+					.checkUserAndRefresh(Michael)
+					.then(user => {
+						const tokenStr = "Bearer " + user.accessToken;
 						axios
-							.delete(removeTracksUrl, {
-								data: deleteBody,
+							.get(getSpotifyPlaylistUrl, {
 								headers: {
 									Authorization: tokenStr,
 									"Content-Type": "application/json"
 								}
 							})
-							.then(pl => {
-								console.log(newTrackList);
-								module.exports
-									.addTracksToSpotify(
-										spl,
-										newTrackList,
-										Michael
-									)
-									.then(spotifyPlaylistId => {
+							.then(spl => {
+								const spotifyPlaylistSnapshotId =
+									spl.data.snapshot_id;
+								//console.log("returned playlist:");
+								//console.log(spl.data);
+								const splLength = spl.data.tracks.items.length;
+								const removeTracksUrl =
+									"https://api.spotify.com/v1/users/" +
+									obj.spotifyId +
+									"/playlists/" +
+									spotifyPlaylistId +
+									"/tracks";
+								let removedPositionArray = [];
+
+								if (splLength - playedTracks <= 0) {
+									if (splLength === 0) {
 										console.log(
-											"Just updated spotifyPlaylist: " +
-												spotifyPlaylistId
+											"Spotify playlist has length of 0 " +
+												"Something must have errored out. " +
+												"Adding full playlist..."
 										);
-									})
-									.catch(err => {
-										console.log(err);
-										//res.status(422).json(err);
-									});
+										module.exports
+											.addTracksToSpotify(
+												spl,
+												newTrackList,
+												Michael
+											)
+											.then(spotifyPlaylistId => {
+												console.log(
+													"Just updated spotifyPlaylist: " +
+														spotifyPlaylistId
+												);
+											})
+											.catch(err => {
+												console.log(
+													"syncWithSpotify failed at adding new tracks"
+												);
+												//res.status(422).json(err);
+											});
+									} else {
+										console.log(
+											"warning: trying to delete 0 tracks. " +
+												"Something must have errored out. " +
+												"Nuking playlist and starting over..."
+										);
+										for (let i = 0; i < splLength; i++) {
+											removedPositionArray.push(i);
+										}
+										const deleteBody = {
+											positions: removedPositionArray,
+											snapshot_id: spotifyPlaylistSnapshotId
+										};
+										axios
+											.delete(removeTracksUrl, {
+												data: deleteBody,
+												headers: {
+													Authorization: tokenStr,
+													"Content-Type":
+														"application/json"
+												}
+											})
+											.then(pl => {
+												console.log(
+													"Deleted all tracks. Now adding " +
+														newTrackList
+												);
+												module.exports
+													.addTracksToSpotify(
+														spl,
+														newTrackList,
+														Michael
+													)
+													.then(spotifyPlaylistId => {
+														console.log(
+															"Just updated spotifyPlaylist: " +
+																spotifyPlaylistId
+														);
+													})
+													.catch(err => {
+														console.log(
+															"syncWithSpotify failed at adding new tracks"
+														);
+														//res.status(422).json(err);
+													});
+											})
+											.catch(err => {
+												console.log(
+													"syncWithSpotify failed at deleting tracks"
+												);
+
+												//res.status(422).json(err);
+											});
+									}
+								} else {
+									for (
+										let i = playedTracks;
+										i < splLength;
+										i++
+									) {
+										removedPositionArray.push(i);
+									}
+									const deleteBody = {
+										positions: removedPositionArray,
+										snapshot_id: spotifyPlaylistSnapshotId
+									};
+									axios
+										.delete(removeTracksUrl, {
+											data: deleteBody,
+											headers: {
+												Authorization: tokenStr,
+												"Content-Type":
+													"application/json"
+											}
+										})
+										.then(pl => {
+											console.log(
+												"Adding tracks: " + newTrackList
+											);
+											module.exports
+												.addTracksToSpotify(
+													spl,
+													newTrackList.splice(
+														playedTracks,
+														newTrackList.length -
+															playedTracks
+													),
+													Michael
+												)
+												.then(spotifyPlaylistId => {
+													console.log(
+														"Just updated spotifyPlaylist: " +
+															spotifyPlaylistId
+													);
+												})
+												.catch(err => {
+													console.log(
+														"syncWithSpotify failed at adding new tracks"
+													);
+													//res.status(422).json(err);
+												});
+										})
+										.catch(err => {
+											console.log(
+												"syncWithSpotify failed at deleting tracks"
+											);
+
+											//res.status(422).json(err);
+										});
+								}
 							})
 							.catch(err => {
-								console.log(err.response.data);
-
-								//res.status(422).json(err);
+								console.log(
+									"Error coming from syncWithSpotify"
+								);
+								console.log(err);
+								if (err.response.status === 401) {
+									usersController
+										.refreshToken(Michael)
+										.then(user => {
+											syncWithSpotify(
+												spotifyPlaylistId,
+												newTrackList,
+												playedTracks
+											);
+										});
+								} else {
+									reject(err);
+								}
 							});
 					})
 					.catch(err => {
-						console.log("Error coming from syncWithSpotify");
+						console.log(
+							"Error coming from syncWithSpotify triggered by refreshToken"
+						);
 						console.log(err);
-						if (err.response.status === 401) {
-							usersController.refreshToken(Michael).then(user => {
-								syncWithSpotify(
-									spotifyPlaylistId,
-									newTrackList,
-									playedTracks
-								);
-							});
-						} else {
-							reject(err);
-						}
 					});
 			})
 			.catch(err => {
 				console.log(err);
 				res.status(422).json(err);
 			});
+	},
+	startPlaying: (req, res) => {
+		//console.log(req.body);
+
+		db.User
+			.findById(req.body.userId)
+			.then(uObj => {
+				db.TrackList
+					.findById(req.body.playlistId)
+					.populate({
+						path: "tracks",
+						options: { sort: { order: 1 } }
+					})
+					.then(plObj => {
+						//Replace with ID match once we fully populate the new playlists
+						if (true) {
+							var bulkWriteObj = [];
+
+							res.status(200).json({
+								success: true,
+								spotifyPlaylistId: plObj.spotifyPlaylistId
+							});
+							let now = new Date();
+							let lastTime = now.getTime();
+							//console.log("MS timestamp: " + lastTime);
+							//console.log(req.body.trackNum);
+							let duration =
+								plObj.tracks[req.body.trackNum].duration;
+
+							for (let i = req.body.trackNum; i >= 0; i--) {
+								//console.log(plObj.tracks[i].playedAt);
+								if (plObj.tracks[i].playedAt) {
+									lastTime = plObj.tracks[i].playedAt - 1;
+									bulkWriteObj.push({
+										updateOne: {
+											filter: {
+												_id: plObj.tracks[i]._id
+											},
+											update: {
+												hasPlayed: true,
+												isPlaying:
+													i === req.body.trackNum
+											}
+										}
+									});
+								} else {
+									bulkWriteObj.push({
+										updateOne: {
+											filter: {
+												_id: plObj.tracks[i]._id
+											},
+											update: {
+												playedAt: lastTime,
+												hasPlayed: true
+											}
+										}
+									});
+									lastTime =
+										lastTime - plObj.tracks[i].duration;
+								}
+								for (
+									let i = req.body.trackNum + 1;
+									i < plObj.tracks.length;
+									i++
+								) {
+									bulkWriteObj.push({
+										updateOne: {
+											filter: {
+												_id: plObj.tracks[i]._id
+											},
+											update: {
+												playedAt: null,
+												hasPlayed: false,
+												isPlaying: false
+											}
+										}
+									});
+								}
+							}
+							console.log(bulkWriteObj);
+							if (bulkWriteObj) {
+								db.Track
+									.bulkWrite(bulkWriteObj)
+									.then(res => {
+										console.log(
+											"Started Playing (track no. " +
+												req.body.trackNum +
+												")."
+										);
+										clientsController.refresh(req.body.playlistId);
+										setTimeout(function() {
+											module.exports.updatePlaying(
+												req.body.playlistId,
+												req.body.trackNum
+											);
+										}, duration);
+									})
+									.catch(err => {
+										console.log(
+											"startPlaying failed trying to update timestamps"
+										);
+										console.log(err);
+									});
+							} else {
+								res
+									.status(200)
+									.json({ text: "nothing to update" });
+							}
+						} else {
+							res
+								.status(422)
+								.json({ text: "Only the host can hit play" });
+						}
+					})
+					.catch(err => {
+						console.log(err);
+						res.status(422).json(err);
+					});
+			})
+			.catch(err => {
+				console.log(err.response.data);
+				res.status(422).json(err);
+			});
+	},
+	updatePlaying: (playlistId, nowPlayingTrackNum) => {
+		const nextTrackNum = nowPlayingTrackNum + 1;
+		console.log("Finishing track " + nowPlayingTrackNum);
+		db.TrackList
+			.findById(playlistId)
+			.populate({
+				path: "tracks",
+				options: { sort: { order: 1 } }
+			})
+			.then(plObj => {
+				let bulkWriteObj = [];
+				let now = new Date();
+				let nowTime = now.getTime();
+				const duration = plObj.tracks[nextTrackNum].duration;
+				bulkWriteObj.push({
+					updateOne: {
+						filter: {
+							_id: plObj.tracks[nowPlayingTrackNum]._id
+						},
+						update: {
+							hasPlayed: true,
+							isPlaying: false
+						}
+					}
+				});
+				bulkWriteObj.push({
+					updateOne: {
+						filter: {
+							_id: plObj.tracks[nextTrackNum]._id
+						},
+						update: {
+							isPlaying: true,
+							playedAt: nowTime
+						}
+					}
+				});
+				db.Track.bulkWrite(bulkWriteObj).then(res => {
+					console.log(
+						"Playing next track (no. " + nextTrackNum + ")."
+					);
+					clientsController.refresh(playlistId);
+					setTimeout(function() {
+						module.exports.updatePlaying(playlistId, nextTrackNum);
+					}, duration);
+				});
+			});
+	},
+	searchPlaylists: (req, res) => {
+		//console.log("Params from searchPlaylists:");
+		//console.log(req.query);
+		let searchField;
+		if (req.query.searchType === "name") {
+			searchField = "name";
+		} else if (req.query.searchType === "creator") {
+			searchField = "createdBy.spotifyId";
+		} else {
+			console.log("Search error: not looking for name or creator");
+			return res
+				.status(422)
+				.json({ error: "can only search for name or creator" });
+		}
+		db.TrackList
+			// .populate({
+			// 	path: "createdBy"
+			// })
+			.find({
+				[searchField]: {
+					$regex: req.query.searchTerm.toLowerCase(),
+					$options: "i"
+				}
+			})
+			.then(obj => {
+				//console.log(obj);
+				res.status(200).json(obj);
+			})
+			.catch(err => res.status(422).json(err));
 	},
 	update: function(req, res) {
 		db.trackList

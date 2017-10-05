@@ -13,7 +13,7 @@ export default {
 		const query = { q: searchQuery, type: type };
 		const url = "https://api.spotify.com/v1/search";
 		const tokenStr = "Bearer " + token;
-		console.log(tokenStr);
+		// console.log(tokenStr);
 		return axios.get(url, {
 			params: query,
 			headers: {
@@ -21,9 +21,12 @@ export default {
 			}
 		});
 	},
+	getAllPlaylists: () => {
+		return axios.get("/api/playlists");
+	},
 	getSpotifyPlaylist: function(url, token) {
 		const tokenStr = "Bearer " + token;
-		console.log(tokenStr);
+		//console.log(tokenStr);
 		return axios.get(url, {
 			headers: {
 				Authorization: tokenStr
@@ -64,17 +67,25 @@ export default {
 	subscribeToTimer: (interval, cb) => {
 		socket.on("timer", timestamp => cb(null, timestamp));
 		socket.emit("subscribeToTimer", interval);
-		console.log(process.env);
+		console.log(process.env.NODE_ENV);
 	},
 	subscribeToPlaylistUpdates: (playlistId, cb) => {
 		socket.on("refresh", refresh => cb(null, refresh));
 		socket.emit("subscribeToPlaylistUpdates", playlistId);
+	},
+	unsubscribeFromSocket: () => {
+		socket.removeAllListeners("timer");
+		socket.removeAllListeners("refresh");
+	},
+	unsubscribeFromTimer: () => {
+		socket.emit("unsubscribeFromTimer", null);
 	},
 	createPlaylist: function(
 		trackList,
 		userName,
 		token,
 		playlistName,
+		creator,
 		locationName,
 		locationLong,
 		locationLat,
@@ -82,11 +93,11 @@ export default {
 		isSearchable
 	) {
 		return new Promise((resolve, reject) => {
-			playlistName = "Hello Poppet";
-			console.log(trackList);
+			//console.log(trackList);
 			const playlistData = {
 				trackList: trackList,
-				playlistName: playlistName,
+				playlistName: playlistName || "Untitled",
+				createdBy: creator,
 				locationName: locationName,
 				locationLong: locationLong,
 				locationLat: locationLat,
@@ -95,6 +106,7 @@ export default {
 				creatorUserName: userName,
 				totalVotes: 3
 			};
+			console.log(playlistData);
 			axios
 				.post("/api/playlists/", playlistData)
 				.then(res => {
@@ -113,6 +125,44 @@ export default {
 			playlistId: playlistId
 		});
 	},
+	startPlaying: (user, playlistId, trackNum, spotifyPlaylistId) => {
+		axios
+			.post("/api/playlists/start", {
+				requestorSpotifyId: user.spotifyId,
+				requestorUserId: user._id,
+				playlistId: playlistId,
+				trackNum: trackNum
+			})
+			.then(res => {
+				console.log(res);
+				if (res.data.success) {
+					const spotifyPlayUrl =
+						"https://api.spotify.com/v1/me/player/play";
+					const tokenStr = "Bearer " + user.accessToken;
+					const contextUriStr =
+						"spotify:user:"+user.spotifyId+":playlist:" +
+						res.data.spotifyPlaylistId;
+					console.log(contextUriStr);
+					console.log(trackNum);
+					axios
+						.put(
+							spotifyPlayUrl,
+							{
+								context_uri: contextUriStr,
+								offset: { position: trackNum }
+							},
+							{
+								headers: {
+									Authorization: tokenStr
+								}
+							}
+						)
+						.then(res => {
+							console.log(res);
+						});
+				}
+			});
+	},
 	addTrackToPlaylist: function(track, playlistId) {
 		console.log("Api call to add track triggered!");
 		return axios.post("api/playlists/" + playlistId + "/addTrack/", {
@@ -123,6 +173,13 @@ export default {
 		console.log(playlistId);
 		console.log(userId);
 		return axios.get("/api/playlists/" + playlistId + "/user/" + userId);
+	},
+	searchDbPlaylists: function(searchTerm, searchType) {
+		console.log(searchType + ": " + searchTerm);
+		return axios
+			.get("/api/playlists/search", {
+				params: { searchTerm: searchTerm, searchType: searchType }
+			});
 	},
 	deleteSavedArticle: function(id) {
 		return axios.delete("/api/articles/" + id);
