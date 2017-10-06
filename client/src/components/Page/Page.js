@@ -20,7 +20,7 @@ import SearchPlaylist from "../SearchPlaylist";
 const Page = props => (
 	<div>
 		<Header {...props} />
-		{props.user ? (
+		{props.loggedIn ? (
 			props.isHost ? (
 				<div>
 					{props.playlistId ? (
