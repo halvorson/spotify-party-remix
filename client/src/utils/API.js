@@ -148,7 +148,8 @@ export default {
 						.put(
 							spotifyPlayUrl,
 							{
-								context_uri: contextUriStr
+								context_uri: contextUriStr,
+								offset: { position: trackNum }
 							},
 							{
 								headers: {

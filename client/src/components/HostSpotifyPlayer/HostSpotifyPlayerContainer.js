@@ -128,6 +128,22 @@ class HostSpotifyPlayerContainer extends Component {
                 );
               })}
             </div>
+            invite friends to contribute at {" "}
+            <a
+              href={
+                window.location.protocol +
+                "//" +
+                window.location.host +
+                "/party/" +
+                this.props.playlistId
+              }
+            >
+              {window.location.protocol +
+                "//" +
+                window.location.host +
+                "/party/" +
+                this.props.playlistId}
+            </a>
           </div>
         </HostSpotifyPlayer>
       </div>

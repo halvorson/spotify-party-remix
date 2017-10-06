@@ -6,7 +6,7 @@ const Login = props => (
 			<h1>Welcome to Spotify Party Remix</h1>
 			<div width="300px">
 				<p>
-					Not sure what people want to hear? Let them decide.
+					Give the people what they want.
 				</p>
 			</div>
 			<a href="/auth/spotify">
