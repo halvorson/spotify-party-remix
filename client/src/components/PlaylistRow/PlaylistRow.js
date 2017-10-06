@@ -9,12 +9,15 @@ const ellipsis = {
 const PlaylistRow = props => (
 	<div
 		id={props.playlist._id}
-		className={"list-group-item list-group-item-action "}
+		className={
+			"list-group-item list-group-item-action " +
+			(props.selectedPlaylistId && props.selectedPlaylistId === props.playlist.id  ? "active" : "")
+		}
 		style={{ padding: 0 }}
 		onClick={props.onClick}
 	>
 		<div className="d-flex justify-content-start" id={props.playlist._id}>
-			<div className="p-2" id={props.playlist._id}>
+			<div className="p-2" id={props.playlist._id} style={ellipsis}>
 				{props.playlist.name}
 			</div>
 		</div>

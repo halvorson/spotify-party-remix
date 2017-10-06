@@ -85,8 +85,8 @@ export default {
 		userName,
 		token,
 		playlistName,
-		creator,
 		locationName,
+		creator,
 		locationLong,
 		locationLat,
 		geoLocked,
@@ -148,8 +148,7 @@ export default {
 						.put(
 							spotifyPlayUrl,
 							{
-								context_uri: contextUriStr,
-								offset: { position: trackNum }
+								context_uri: contextUriStr
 							},
 							{
 								headers: {

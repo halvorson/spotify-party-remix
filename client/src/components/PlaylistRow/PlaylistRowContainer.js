@@ -10,7 +10,6 @@ class PlaylistRowContainer extends Component {
   componentDidMount() {}
 
   render() {
-    //console.log(this.props.track);
     return (
       <PlaylistRow {...this.props}>
         {this.props.children}

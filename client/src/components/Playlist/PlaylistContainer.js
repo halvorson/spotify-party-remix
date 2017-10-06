@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import Playlist from "./Playlist";
 import API from "../../utils/API";
-import Track from "../Track";
-import VoteControlPanel from "../VoteControlPanel";
 
 class PlaylistContainer extends Component {
   constructor() {
@@ -78,33 +76,15 @@ class PlaylistContainer extends Component {
   render() {
     return (
       <div>
-        <Playlist>
-          <div className="card-body">
-            <div className="list-group">
-              {this.state.trackList.map(item => {
-                return (
-                  <Track track={item} key={item._id}>
-                    <VoteControlPanel
-                      track={item}
-                      user={this.props.user}
-                      playlistId={this.props.playlistId}
-                    />
-                  </Track>
-                );
-              })}
-            </div>
-            <div>Time from server is {this.state.timestamp}</div>
-            {this.state.playlistCreator === this.props.user._id ? (
-              <div>
-                <button
-                  className="btn btn-secondary"
-                  onClick={this.props.setHostToTrue}
-                >
-                  Host mode
-                </button>
-              </div>
-            ) : null}
-          </div>
+        <Playlist
+          trackList={this.state.trackList}
+          user={this.props.user}
+          playlistId={this.props.playlistId}
+          playlistCreator={this.state.playlistCreator}
+          setHostToTrue={this.props.setHostToTrue}
+          timestamp={this.state.timestamp}
+        >
+          
         </Playlist>
       </div>
     );

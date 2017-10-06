@@ -9,7 +9,6 @@ class App extends Component {
 			<div className="App">
 				<Page />
 				<br />
-				<a href="/auth/spotify">Spotify Login</a>
 			</div>
 		);
 	}

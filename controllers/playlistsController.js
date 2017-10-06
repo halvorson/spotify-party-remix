@@ -4,6 +4,7 @@ const refresh = require("passport-oauth2-refresh");
 const usersController = require("./usersController.js");
 const clientsController = require("./clientsController.js");
 
+let playlistTimeouts = {};
 // Defining methods for the playlistController
 module.exports = {
 	findAll: function(req, res) {
@@ -26,7 +27,7 @@ module.exports = {
 			});
 	},
 	getPlaylistById: function(req, res) {
-		console.log(req.params.id);
+		//console.log(req.params.id);
 		db.TrackList
 			.findById(req.params.playlistId)
 			.populate({
@@ -55,7 +56,7 @@ module.exports = {
 		console.log("Api request received to addTrack");
 		//console.log("Received body: ");
 		//console.log(req.body);
-		console.log("playlistId: " + req.params.playlistId);
+		//console.log("playlistId: " + req.params.playlistId);
 		//usersController.testCall();
 		db.Track
 			.create(req.body.track)
@@ -187,7 +188,8 @@ module.exports = {
 										isSearchable: req.body.isSearchable,
 										geoLocked: req.body.geoLocked,
 										createdBy: req.body.createdBy,
-										tracks: trackIds
+										tracks: trackIds,
+										totalVotes: totalVotes
 									})
 									.then(obj => {
 										console.log(
@@ -240,7 +242,8 @@ module.exports = {
 								)
 								.then(spotifyPlaylistId => {
 									resolve(spotifyPlaylistId);
-								});
+								})
+								.catch(err => res.status(422).json(err));
 						})
 						.catch(err => {
 							console.log("Error coming from createNewPlaylist");
@@ -285,21 +288,26 @@ module.exports = {
 				return "spotify:track:" + spotifyUri;
 			});
 			console.log("Adding tracks to Spotify: " + spotifyTrackUris);
-			usersController.checkUserAndRefresh(Michael).then(user => {
-				const tokenStr = "Bearer " + user.accessToken;
-				axios
-					.post(addTracksUrl, spotifyTrackUris, {
-						headers: {
-							Authorization: tokenStr
-						}
-					})
-					.then(() => {
-						resolve(spotifyPlaylistId);
-					})
-					.catch(err => {
-						reject(err);
-					});
-			});
+			usersController
+				.checkUserAndRefresh(Michael)
+				.then(user => {
+					const tokenStr = "Bearer " + user.accessToken;
+					axios
+						.post(addTracksUrl, spotifyTrackUris, {
+							headers: {
+								Authorization: tokenStr
+							}
+						})
+						.then(() => {
+							resolve(spotifyPlaylistId);
+						})
+						.catch(err => {
+							reject(err);
+						});
+				})
+				.catch(err => {
+					reject(err);
+				});
 		});
 		//console.log(pl);
 	},
@@ -628,8 +636,20 @@ module.exports = {
 							//console.log(req.body.trackNum);
 							let duration =
 								plObj.tracks[req.body.trackNum].duration;
-
-							for (let i = req.body.trackNum; i >= 0; i--) {
+							bulkWriteObj.push({
+								updateOne: {
+									filter: {
+										_id: plObj.tracks[req.body.trackNum]._id
+									},
+									update: {
+										playedAt: lastTime,
+										hasPlayed: false,
+										isPlaying: true
+									}
+								}
+							});
+							lastTime = lastTime - plObj.tracks[req.body.trackNum].duration;
+							for (let i = req.body.trackNum - 1; i >= 0; i--) {
 								//console.log(plObj.tracks[i].playedAt);
 								if (plObj.tracks[i].playedAt) {
 									lastTime = plObj.tracks[i].playedAt - 1;
@@ -653,31 +673,33 @@ module.exports = {
 											},
 											update: {
 												playedAt: lastTime,
-												hasPlayed: true
+												hasPlayed: true,
+												isPlaying:
+													i === req.body.trackNum
 											}
 										}
 									});
 									lastTime =
 										lastTime - plObj.tracks[i].duration;
 								}
-								for (
-									let i = req.body.trackNum + 1;
-									i < plObj.tracks.length;
-									i++
-								) {
-									bulkWriteObj.push({
-										updateOne: {
-											filter: {
-												_id: plObj.tracks[i]._id
-											},
-											update: {
-												playedAt: null,
-												hasPlayed: false,
-												isPlaying: false
-											}
+							}
+							for (
+								let i = req.body.trackNum + 1;
+								i < plObj.tracks.length;
+								i++
+							) {
+								bulkWriteObj.push({
+									updateOne: {
+										filter: {
+											_id: plObj.tracks[i]._id
+										},
+										update: {
+											playedAt: null,
+											hasPlayed: false,
+											isPlaying: false
 										}
-									});
-								}
+									}
+								});
 							}
 							console.log(bulkWriteObj);
 							if (bulkWriteObj) {
@@ -689,8 +711,26 @@ module.exports = {
 												req.body.trackNum +
 												")."
 										);
-										clientsController.refresh(req.body.playlistId);
-										setTimeout(function() {
+										clientsController.refresh(
+											req.body.playlistId
+										);
+										if (
+											playlistTimeouts[
+												req.body.playlistId
+											]
+										) {
+											clearTimeout(
+												playlistTimeouts[
+													req.body.playlistId
+												]
+											);
+											console.log(
+												"Destroyed old timeout!"
+											);
+										}
+										playlistTimeouts[
+											req.body.playlistId
+										] = setTimeout(function() {
 											module.exports.updatePlaying(
 												req.body.playlistId,
 												req.body.trackNum
@@ -765,7 +805,13 @@ module.exports = {
 						"Playing next track (no. " + nextTrackNum + ")."
 					);
 					clientsController.refresh(playlistId);
-					setTimeout(function() {
+					if (playlistTimeouts[playlistId]) {
+						clearTimeout(playlistTimeouts[req.body.playlistId]);
+						console.log("Destroyed old timeout!");
+					}
+					playlistTimeouts[
+						playlistId
+					] = setTimeout(function() {
 						module.exports.updatePlaying(playlistId, nextTrackNum);
 					}, duration);
 				});
@@ -776,7 +822,7 @@ module.exports = {
 		//console.log(req.query);
 		let searchField;
 		if (req.query.searchType === "name") {
-			searchField = "name";
+			searchField = "nameLower";
 		} else if (req.query.searchType === "creator") {
 			searchField = "createdBy.spotifyId";
 		} else {
@@ -795,6 +841,7 @@ module.exports = {
 					$options: "i"
 				}
 			})
+			.sort({ _id: -1 })
 			.then(obj => {
 				//console.log(obj);
 				res.status(200).json(obj);

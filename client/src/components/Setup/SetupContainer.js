@@ -1,9 +1,7 @@
 import React, { Component } from "react";
 import Setup from "./Setup";
-import SpotifyPlaylistContainer from "../SpotifyPlaylist";
 import Container from "../Bootstrap/Container";
 import API from "../../utils/API";
-import PlaylistRow from "../PlaylistRow";
 
 class SetupContainer extends Component {
   constructor() {
@@ -12,7 +10,10 @@ class SetupContainer extends Component {
       playlistList: [],
       selectedPlaylistId: null
     };
+
   }
+
+  //let spotifyPlaylist = null;
 
   componentDidMount() {
     if (this.props.user) {
@@ -26,7 +27,7 @@ class SetupContainer extends Component {
         })
         .catch(err => {
           console.log(err);
-          if (err.response.status === 401) {
+          if (err.response === 401) {
             //Refresh token if needed
             this.props.refreshUserToken();
           }
@@ -59,6 +60,8 @@ class SetupContainer extends Component {
 
   selectPlaylist = (id, href) => {
     this.setState({ selectedPlaylistId: id, selectedPlaylistHref: href });
+    console.log(id);
+    console.log(href);
     console.log("Click registered");
   };
 
@@ -79,9 +82,9 @@ class SetupContainer extends Component {
   handleFormSubmit = e => {
     //Form submits new playlist
     e.preventDefault();
-    console.log(this.props);
-    console.log(this.refs.spotifyPlaylist.getCheckedTracks());
-    const newPlaylist = this.refs.spotifyPlaylist.getCheckedTracks();
+    //console.log(this.props);
+    //console.log(this.spotifyPlaylist.getCheckedTracks());
+    const newPlaylist = this.spotifyPlaylist.getCheckedTracks();
     API.createPlaylist(
       newPlaylist,
       this.props.user.spotifyId,
@@ -96,76 +99,26 @@ class SetupContainer extends Component {
     });
   };
 
+  
+
   render() {
     return (
-      <div>
-        <Setup playlists={null}>
-          <Container>
-            <div className="row">
-              <div className="col-md-4">
-                <h4>Choose a playlist</h4>
-                <div className="pre-scrollable">
-                  {this.state.playlistList.map(item => {
-                    //console.log(item);
-                    return (
-                      <PlaylistRow
-                        playlist={item}
-                        key={item.id}
-                        onClick={() => this.selectPlaylist(item.id, item.href)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {this.state.selectedPlaylistId ? (
-                <div className="col-md-8">
-                  <h4>Select songs to import</h4>
-                  <div className="pre-scrollable">
-                    <SpotifyPlaylistContainer
-                      ref="spotifyPlaylist"
-                      user={this.props.user}
-                      playlistId={this.state.selectedPlaylistId}
-                      playlistHref={this.state.selectedPlaylistHref}
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-            <div className="row">
-              <form className="card-body" onSubmit={this.handleFormSubmit}>
-                <div className="form-row">
-                  <div className="form-group col-sm-12">
-                    <label>Playlist name:</label>
-                    <input
-                      name="name"
-                      type="text"
-                      className="form-control"
-                      onChange={this.handleInputChange}
-                      value={this.state.searchTerm}
-                    />
-                  </div>
-                  <div className="form-group col-sm-12">
-                    <button type="submit" className="btn btn-primary btn-block">
-                      Create playlist
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <hr />
-            <div className="form-group col-sm-12">
-              <button
-                type="submit"
-                className="btn btn-secondary btn-block"
-                onClick={this.props.goHome}
-              >
-                Go back
-              </button>
-            </div>
-          </Container>
+      
+        <Setup playlists={null}
+          selectedPlaylistId={this.state.selectedPlaylistId}
+          selectPlaylist={this.selectPlaylist}
+          user={this.props.user}
+          playlistHref={this.state.selectedPlaylistHref}
+          handleFormSubmit = {this.handleFormSubmit}
+          handleInputChange = {this.handleInputChange}
+          goHome={this.props.goHome}
+          searchTerm={this.state.searchTerm}
+          playlistList={this.state.playlistList}
+          setRef = {(item) => {this.spotifyPlaylist = item}}
+          >
+          
         </Setup>
-      </div>
+      
     );
   }
 }

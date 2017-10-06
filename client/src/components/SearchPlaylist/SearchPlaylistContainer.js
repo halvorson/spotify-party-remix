@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import SearchPlaylist from "./SearchPlaylist";
 import API from "../../utils/API";
-import PlaylistRow from "../PlaylistRow";
 
 class SearchPlaylistContainer extends Component {
   constructor() {
@@ -29,7 +28,7 @@ class SearchPlaylistContainer extends Component {
     });
   };
 
-  handleFormSubmit = event => {
+  handleSearchClick = event => {
     event.preventDefault();
 
     API.searchDbPlaylists(
@@ -37,11 +36,11 @@ class SearchPlaylistContainer extends Component {
       this.state.searchType
     ).then(res => {
       //console.log(res);
-      this.setState({ searchResults: res.data, hasSearched: true });
+      this.setState({ searchResults: res.data, hasSearched: true, listResults: [] });
     });
   };
 
-  selectDbPlaylist = (e) => {
+  selectDbPlaylist = e => {
     console.log(e.target);
     this.props.setPlaylistId(e.target.id);
   };
@@ -49,7 +48,7 @@ class SearchPlaylistContainer extends Component {
   getAllPlaylists = () => {
     API.getAllPlaylists().then(res => {
       //console.log(res.data);
-      this.setState({ listResults: res.data, gotList: true });
+      this.setState({ listResults: res.data, gotList: true, searchResults: [] });
     });
   };
 
@@ -59,60 +58,16 @@ class SearchPlaylistContainer extends Component {
     return (
       <div>
         <SearchPlaylist
-          handleFormSubmit={this.handleFormSubmit}
+          handleSearchClick={this.handleSearchClick}
           handleInputChange={this.handleInputChange}
           searchType={this.state.searchType}
           searchTerm={this.state.searchTerm}
+          searchResults={this.state.searchResults}
+          selectDbPlaylist={this.selectDbPlaylist}
+          getAllPlaylists={this.getAllPlaylists}
+          listResults={this.state.listResults}
+          createNewPlaylist={this.props.createNewPlaylist}
         >
-          <div className="container">
-          <div className="list-group">
-            {this.state.searchResults.map(item => {
-              return (
-                <PlaylistRow
-                  playlist={item}
-                  key={item._id}
-                  onClick={this.selectDbPlaylist}
-                />
-              );
-            })}
-          </div>
-          </div>
-          <div>
-            <h4 className="text-center">---OR---</h4>
-            <div className="col-sm-12">
-              <button
-                className="btn btn-primary btn-block"
-                onClick={this.getAllPlaylists}
-              >
-                Select from list
-              </button>
-            </div>
-          </div>
-          <div className="container">
-          <div className="list-group">
-            {this.state.listResults.map(item => {
-              return (
-                <PlaylistRow
-                  playlist={item}
-                  key={item._id}
-                  onClick={this.selectDbPlaylist}
-                />
-              );
-            })}
-
-          </div>
-          </div>
-          <div>
-            <h4 className="text-center">---OR---</h4>
-            <div className="col-sm-12">
-              <button
-                className="btn btn-primary btn-block"
-                onClick={this.props.createNewPlaylist}
-              >
-                Create a new one
-              </button>
-            </div>
-          </div>
         </SearchPlaylist>
       </div>
     );

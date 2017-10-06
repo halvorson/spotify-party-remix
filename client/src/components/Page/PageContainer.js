@@ -27,7 +27,7 @@ class PageContainer extends Component {
           loggedIn: false,
           user: null
         });
-        console.log(err);
+        //console.log(err);
       });
   }
 

@@ -5,7 +5,7 @@ import PlaylistContainer from "../Playlist";
 import Login from "../Login";
 import SetupContainer from "../Setup";
 import HostSpotifyPlayer from "../HostSpotifyPlayer";
-
+import Header from "../Header";
 import SearchPlaylist from "../SearchPlaylist";
 
 /*
@@ -19,34 +19,37 @@ import SearchPlaylist from "../SearchPlaylist";
 
 const Page = props => (
 	<div>
-		<h1>This is the main App component</h1>
-		<Container>
-			<Login {...props} />
-		</Container>
-		{props.isHost ? (
-			<div>
-				{props.playlistId ? (
+		<Header {...props} />
+		{props.user ? (
+			props.isHost ? (
+				<div>
+					{props.playlistId ? (
+						<Container>
+							<HostSpotifyPlayer {...props} />
+						</Container>
+					) : (
+						<Container>
+							<SetupContainer {...props} />
+						</Container>
+					)}
+				</div>
+			) : props.playlistId ? (
+				<div>
 					<Container>
-						<HostSpotifyPlayer {...props} />
+						<PlaylistContainer {...props} />
 					</Container>
-				) : (
 					<Container>
-						<SetupContainer {...props} />
+						<SearchContainer {...props} />
 					</Container>
-				)}
-			</div>
-		) : props.playlistId ? (
-			<div>
+				</div>
+			) : (
 				<Container>
-					<PlaylistContainer {...props} />
+					<SearchPlaylist {...props} />
 				</Container>
-				<Container>
-					<SearchContainer {...props} />
-				</Container>
-			</div>
+			)
 		) : (
 			<Container>
-				<SearchPlaylist {...props} />
+				<Login {...props} />
 			</Container>
 		)}
 	</div>

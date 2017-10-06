@@ -1,12 +1,17 @@
 import React from "react";
 
-const Header = () => {
+const Header = props => {
 	return (
-		<div className="jumbotron text-center">
-			<h1>New York Times Article Scrubber</h1>
-			<p className="lead">Search for and annotate articles of interest!</p>
-		</div>
-	)
+		<nav className="navbar sticky-top navbar-dark bg-dark" id="mainNav" style={{marginBottom: "1em"}}>
+			<a className="navbar-brand" href="/">
+				Spotify Party Remix
+			</a>
+			{props.user ? (
+			<form className="form-inline">
+				<button className="btn btn-outline-success" onClick={props.logout}>Logout</button>
+			</form>) : null}
+		</nav>
+	);
 };
 
 export default Header;

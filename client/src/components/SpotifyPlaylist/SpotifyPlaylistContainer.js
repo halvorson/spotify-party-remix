@@ -11,6 +11,7 @@ class SpotifyPlaylistContainer extends Component {
 
   componentWillMount() {
     //console.log();
+    console.log(this.props);
     API.getSpotifyPlaylist(this.props.playlistHref, this.props.user.accessToken)
       .then(res => {
         //console.log(res.data.tracks.items);
@@ -40,22 +41,25 @@ class SpotifyPlaylistContainer extends Component {
       .catch(err => console.log(err));
   }
 
-  handleInputChange = event => {
-    //event.preventDefault();
-    //console.log(event.target);
-    //console.log(event.target.id);
-    //let newTrackList = [];
+  // handleInputChange = event => {
+  //   this.state.trackList.forEach(function(item) {
+  //     if (item.track.id === event.target.id) {
+  //       item.toBeImported = !item.toBeImported;
+  //     }
+  //   });
+  //   console.log(this.state.trackList);
+  //   this.forceUpdate();
+  // };
+
+  onTrackClick = trackId => {
+    console.log(trackId);
     this.state.trackList.forEach(function(item) {
-      //console.log(item);
-      if (item.track.id === event.target.id) {
+      if (item.track.id === trackId) {
         item.toBeImported = !item.toBeImported;
       }
-      //newTrackList.push(item);
     });
-    console.log(this.state.trackList);
-    //console.log(newTrackList);
+    //console.log(this.state.trackList);
     this.forceUpdate();
-    //this.setState({ trackList: newTrackList });
   };
 
   getCheckedTracks = () => {
@@ -68,9 +72,15 @@ class SpotifyPlaylistContainer extends Component {
           artist: item.track.artists[0].name,
           album: item.track.album.name,
           spotifyId: item.track.id,
-          albumArtSmallUrl: item.track.album.images[2].url,
-          albumArtMedUrl: item.track.album.images[1].url,
-          albumArtLargeUrl: item.track.album.images[0].url,
+          albumArtSmallUrl: item.track.album.images
+            ? item.track.album.images[2].url
+            : null,
+          albumArtMedUrl: item.track.album.images
+            ? item.track.album.images[1].url
+            : null,
+          albumArtLargeUrl: item.track.album.images
+            ? item.track.album.images[0].url
+            : null,
           addedBy: userId,
           duration: item.track.duration_ms
         });
@@ -78,7 +88,6 @@ class SpotifyPlaylistContainer extends Component {
     });
     return newPlaylist;
     //console.log(this.props.user);
-    
   };
 
   //In future, add ability to re-sort and ability to shuffle
@@ -87,17 +96,29 @@ class SpotifyPlaylistContainer extends Component {
     return (
       <div>
         <SpotifyPlaylist />
-        <div>
+        <div >
           {this.state.trackList.map(item => {
             return (
-              <Track track={item.track} key={item.track.id}>
-                <input
-                  name="importCheck"
-                  type="checkbox"
-                  checked={item.toBeImported}
-                  id={item.track.id}
-                  onChange={this.handleInputChange}
-                />
+              <Track
+                track={item.track}
+                controlPanelSize={"small"}
+                key={item.track.id}
+                onClick={() => {
+                  this.onTrackClick(item.track.id);
+                }}
+                shouldBeDisabled={!item.toBeImported}
+              >
+                {item.toBeImported ? (
+                  <i
+                    className="fa fa-check-square-o fa-4x text-success"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <i
+                    className="fa fa-square-o fa-4x text-danger"
+                    aria-hidden="true"
+                  />
+                )}
               </Track>
             );
           })}
@@ -106,5 +127,14 @@ class SpotifyPlaylistContainer extends Component {
     );
   }
 }
+
+/*
+<input
+                  name="importCheck"
+                  type="checkbox"
+                  checked={item.toBeImported}
+                  id={item.track.id}
+                  onChange={this.handleInputChange}
+                />*/
 
 export default SpotifyPlaylistContainer;

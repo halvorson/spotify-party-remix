@@ -1,14 +1,28 @@
 import React, { Component } from "react";
+import PlaylistRow from "../PlaylistRow";
 
 const SearchPlaylist = props => (
 	<div className="card">
-		<h4 className="card-header bg-primary text-white">
-			Select a playlist
-		</h4>
-		<form className="card-body" onSubmit={props.handleFormSubmit}>
-			<div className="form-row">
-				<div className="form-group col-sm-10">
+	<div className="card-header bg-primary text-white align-middle d-flex justify-content-start p-2">
+			<div className="p-2">
+				<h4>Select a playlist</h4>
+			</div>
+			<div className="p-2 ml-auto">
+				{true ? (
+					<button
+						className="btn btn-sm btn-info"
+						onClick={props.createNewPlaylist}
+					>
+						Start your own party
+					</button>
+				) : null}
+			</div>
+		</div>
+		<div className="card-body">
+			<div className="form-row d-flex p-2 justify-content-start">
+				<div className="p-2 col">
 					<input
+						style={{ minWidth: "200px", width: "100%" }}
 						name="searchTerm"
 						type="text"
 						className="form-control"
@@ -16,14 +30,52 @@ const SearchPlaylist = props => (
 						value={props.searchTerm}
 					/>
 				</div>
-				<div className="form-group col-sm-2">
-					<button type="submit" className="btn btn-primary btn-block">
+				<div className="p-2">
+					<button
+						type="submit"
+						className="btn btn-secondary btn-block"
+						onClick={props.handleSearchClick}
+					>
 						Search
 					</button>
 				</div>
+				<div className="p-2 align-middle" >
+					<span className="align-middle">or</span>
+				</div>
+
+				<div className="p-2">
+					<button
+						className="btn btn-primary btn-block"
+						onClick={props.getAllPlaylists}
+					>
+						Select from list
+					</button>
+				</div>
 			</div>
-		</form>
-		<div className="list-group">{props.children}</div>
+
+			<div className="list-group">
+				{props.searchResults.map(item => {
+					return (
+						<PlaylistRow
+							playlist={item}
+							key={item._id}
+							onClick={props.selectDbPlaylist}
+						/>
+					);
+				})}
+			</div>
+			<div className="list-group">
+				{props.listResults.map(item => {
+					return (
+						<PlaylistRow
+							playlist={item}
+							key={item._id}
+							onClick={props.selectDbPlaylist}
+						/>
+					);
+				})}
+			</div>
+		</div>
 	</div>
 );
 

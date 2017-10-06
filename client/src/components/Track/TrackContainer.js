@@ -12,7 +12,11 @@ class TrackContainer extends Component {
   render() {
     //console.log(this.props.track);
     return (
-      <Track track={this.props.track}>
+      <Track
+        track={this.props.track}
+        controlPanelSize={this.props.controlPanelSize}
+        onClick={this.props.onClick}
+      >
         {this.props.children}
       </Track>
     );
