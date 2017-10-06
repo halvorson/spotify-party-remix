@@ -81,6 +81,13 @@ router.use(function(req, res) {
 	//res.send("hello, world!");
 
 	res.sendFile(path.join(__dirname, "../client/public/index.html"));
+
+	console.log(
+		"this is hitting the catchall at:" +
+			__dirname +
+			" and sending " +
+			path.join(__dirname, "../client/public/index.html")
+	);
 	// res.sendFile(path.join(__dirname, "../client/build/index.html"));
 });
 

@@ -6,7 +6,7 @@ const Header = props => {
 			<a className="navbar-brand" href="/">
 				Spotify Party Remix
 			</a>
-			{props.user ? (
+			{props.loggedIn ? (
 			<form className="form-inline">
 				<button className="btn btn-outline-success" onClick={props.logout}>Logout</button>
 			</form>) : null}

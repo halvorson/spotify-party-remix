@@ -29,6 +29,13 @@ class PageContainer extends Component {
         });
         //console.log(err);
       });
+    console.log(window.location.href);
+    let urlPieces = window.location.href.split("/");
+    const lastPartOfUrl = urlPieces.pop();
+    const penultimatePartOfUrl = urlPieces.pop();
+    if(penultimatePartOfUrl === "party" && lastPartOfUrl.length === 24) {
+      this.setState ({playlistId: lastPartOfUrl});
+    };
   }
 
   componentWillUnmount() {
@@ -37,13 +44,7 @@ class PageContainer extends Component {
 
   componentDidMount() {
     //this.setState({ isHost: false, playlistId: "59d507a084c9d07fcdc86544" });
-    console.log(window.location.href);
-    let urlPieces = window.location.href.split("/");
-    const lastPartOfUrl = urlPieces.pop();
-    const penultimatePartOfUrl = urlPieces.pop();
-    if(penultimatePartOfUrl === "party" && lastPartOfUrl.length === 24) {
-      this.setState ({playlistId: lastPartOfUrl});
-    };
+
   }
 
   refreshUserToken = () => {
