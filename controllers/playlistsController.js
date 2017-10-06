@@ -189,7 +189,7 @@ module.exports = {
 										geoLocked: req.body.geoLocked,
 										createdBy: req.body.createdBy,
 										tracks: trackIds,
-										totalVotes: totalVotes
+										totalVotes: req.body.totalVotes
 									})
 									.then(obj => {
 										console.log(
