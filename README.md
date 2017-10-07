@@ -1,62 +1,22 @@
-# Create React Express App
+# Spotify Party Remix
 
-## About This Boilerplate
+## Brief overview
 
-This setup allows for a monolithic Node/Express/React app which can be easily deployed to Heroku.
+This app allows for crowdsourcing a Spotify playlist so everybody can have a say what music is playing at the party/in the car, etc.
 
-The front-end React app will auto-reload as it's updated via webpack dev server, and the backend Express app will auto-reload independently with nodemon.
+## Using it
 
-## Starting the app locally
+1. Host creates a playlist (requires Spotify Premium)
+2. Host shares link with partygoers, who can add new tracks and vote on existing ones <small>(note: deep linking across registration doesn't work, so they'll need to click, register, then click again)</small>
+3. When party starts, host enters host mode (it's a button), then clicks "play" <small>(note: it'll play on most recent Spotify device, so you might have to start Spotify on whichever computer/phone you want to listen to) (note2: turn off shuffle)</small>
+4. As playlist plays, app will reorder tracks based on crowd demand
 
-Start by installing front and backend dependencies. While in this directory, run the following commands:
+## Tech used
 
-```
-yarn install
-cd client
-yarn install
-cd ..
-``
+MERN, Spotify API (via Axios), Passport.js (for Spotify auth), Socket.io, Koala, 
 
-After both installations complete, run the following command in your terminal:
+## Next steps
 
-```
-yarn start
-```
-
-That's it, your app should be running on <http://localhost:3000>. The Express server should intercept any AJAX requests from the client.
-
-## Deployment (Heroku)
-
-### Create a Git Repo
-
-Once you're ready to deploy, start by making sure your project is a git repository. If so, proceed to the next section, otherwise run the following commands in your terminal:
-
-```
-git init
-git add .
-git commit -m "Initial commit"
-```
-
-### Heroku
-
-Make sure that you have a Heroku app created for this project. If so, proceed to the next section, otherwise run the following command in your terminal:
-
-```
-heroku create
-```
-
-Optionally add an argument for your application's name after `create`, e.g.
-
-```
-heroku myawesomeapp
-```
-
-### Deploying
-
-After confirming that you have an up to date git repository and a Heroku app created, run the following command to deploy:
-
-```
-yarn deploy
-```
-
-If all previous steps were followed correctly, your application should be deployed to Heroku!
+1. Push data via socket.io (currently pushes a refresh request)
+2. Deep link across new user registration 
+3. Enabled Facebook and Google login for non-Spotify users
