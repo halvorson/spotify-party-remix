@@ -85,18 +85,19 @@ class SetupContainer extends Component {
     //console.log(this.props);
     //console.log(this.spotifyPlaylist.getCheckedTracks());
     const newPlaylist = this.spotifyPlaylist.getCheckedTracks();
-    API.createPlaylist(
-      newPlaylist,
-      this.props.user.spotifyId,
-      this.props.user.accessToken,
-      this.state.name,
-      "Michael's house",
-      this.props.user._id
-    ).then(res => {
-      this.props.setPlaylistId(res.data.SPRId);
-      console.log(res);
-      //this.setState({ savedPlaylistId: res.SPRId });
-    });
+    console.log(newPlaylist);
+    // API.createPlaylist(
+    //   newPlaylist,
+    //   this.props.user.spotifyId,
+    //   this.props.user.accessToken,
+    //   this.state.name,
+    //   "Michael's house",
+    //   this.props.user._id
+    // ).then(res => {
+    //   this.props.setPlaylistId(res.data.SPRId);
+    //   console.log(res);
+    //   //this.setState({ savedPlaylistId: res.SPRId });
+    // });
   };
 
   
