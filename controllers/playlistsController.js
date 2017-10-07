@@ -1,4 +1,4 @@
-const db = require("../models");
+const db = require("../models"); 
 const axios = require("axios");
 const refresh = require("passport-oauth2-refresh");
 const usersController = require("./usersController.js");
