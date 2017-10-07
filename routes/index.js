@@ -19,6 +19,8 @@ router.get(
 			"playlist-read-private playlist-read-collaborative " +
 			"ugc-image-upload user-read-private user-read-email " +
 			"user-read-playback-state user-read-currently-playing user-modify-playback-state"
+	},function(req, res) {
+		res.redirect("/");
 	})
 );
 
@@ -27,7 +29,7 @@ router.get(
 	passportSpotify.authenticate("spotify", { failureRedirect: "/login" }),
 	function(req, res) {
 		// Successful authentication
-		console.log(req.user);
+		// console.log(req.user);
 		res.redirect("/");
 	}
 );

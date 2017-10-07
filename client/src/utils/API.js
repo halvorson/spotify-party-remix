@@ -78,7 +78,7 @@ export default {
 					const tokenStr = "Bearer " + user.accessToken;
 					const contextUriStr =
 						"spotify:user:" +
-						user.spotifyId +
+						"michael.t.halvorson" +
 						":playlist:" +
 						res.data.spotifyPlaylistId;
 					// const shuffleUrl =
