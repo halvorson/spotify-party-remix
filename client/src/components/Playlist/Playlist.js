@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import Track from "../Track";
 import VoteControlPanel from "../VoteControlPanel";
 

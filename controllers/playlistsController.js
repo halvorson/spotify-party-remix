@@ -1,10 +1,11 @@
-const db = require("../models"); 
+const db = require("../models");
 const axios = require("axios");
 const refresh = require("passport-oauth2-refresh");
 const usersController = require("./usersController.js");
 const clientsController = require("./clientsController.js");
 
 let playlistTimeouts = {};
+const checkBeforeSeconds = 3 * 1000;
 // Defining methods for the playlistController
 module.exports = {
 	findAll: function(req, res) {
@@ -269,7 +270,7 @@ module.exports = {
 	},
 	addTracksToSpotify: (pl, trackList, Michael) => {
 		return new Promise((resolve, reject) => {
-			const spotifyPlaylistId = pl.data.id;
+			const spotifyPlaylistId = pl.data ? pl.data.id : pl.id;
 			const addTracksUrl =
 				"https://api.spotify.com/v1/users/" +
 				Michael.spotifyId +
@@ -316,7 +317,8 @@ module.exports = {
 		db.TrackList
 			.findById(playlistId)
 			.populate({
-				path: "tracks"
+				path: "tracks",
+				options: { sort: { order: 1 } }
 			})
 			.then(obj => {
 				var orderIndex = 0;
@@ -326,9 +328,13 @@ module.exports = {
 				var oldTrackList = tracks.map(track => {
 					return track.spotifyId;
 				});
-				console.log(oldTrackList);
+				// console.log(oldTrackList);
 				// console.log("--------Tracks before order--------");
-				// console.log(tracks);
+				// console.log(
+				// 	tracks.map(track => {
+				// 		return track.name;
+				// 	})
+				// );
 				tracks.sort(compare);
 				var newTrackList = [];
 				tracks.forEach((track, index) => {
@@ -345,22 +351,25 @@ module.exports = {
 					});
 				});
 				// console.log("--------Tracks after order--------");
-				// console.log(tracks);
+				// console.log(
+				// 	tracks.map(track => {
+				// 		return track.name;
+				// 	})
+				// );
 				// console.log(bulkWriteObj);
 
 				db.Track.bulkWrite(bulkWriteObj).then(res => {
 					clientsController.refresh(playlistId);
-					console.log("Updated order on tracks");
-					if (trackListDidReorder(oldTrackList, newTrackList)) {
-						console.log(
-							"Playlist changed order -> resyncing with Spotify"
-						);
-						module.exports.syncWithSpotify(
-							obj.spotifyPlaylistId,
-							newTrackList,
-							playedTracks
-						);
-					}
+					// console.log("Updated track votes");
+					// if (trackListDidReorder(oldTrackList, newTrackList)) {
+					// 	console.log(
+					// 		"Playlist changed order -> resyncing with Spotify"
+					// 	);
+					// 	module.exports.syncWithSpotify2(
+					// 		obj.id,
+					// 		obj.spotifyPlaylistId
+					// 	);
+					// }
 				});
 			})
 			.catch(err => res.status(422).json(err));
@@ -368,6 +377,7 @@ module.exports = {
 		function compare(a, b) {
 			if (
 				(a.playedAt && !b.playedAt) ||
+				(a.isPlaying && !b.hasPlayed) ||
 				a.playedAt < b.playedAt ||
 				a.totalVotes > b.totalVotes ||
 				(a.totalVotes === b.totalVotes &&
@@ -376,6 +386,7 @@ module.exports = {
 				return -1;
 			if (
 				(!a.playedAt && b.playedAt) ||
+				(!a.hasPlayed && b.isPlaying) ||
 				a.playedAt > b.playedAt ||
 				a.totalVotes < b.totalVotes ||
 				(a.totalVotes === b.totalVotes &&
@@ -394,6 +405,186 @@ module.exports = {
 			);
 		}
 	},
+	syncWithSpotify2: (playlistId, spotifyPlaylistId) => {
+		db.User
+			.findOne({ spotifyId: "michael.t.halvorson" })
+			.then(obj => {
+				const Michael = obj;
+				const getSpotifyPlaylistUrl =
+					"https://api.spotify.com/v1/users/" +
+					Michael.spotifyId +
+					"/playlists/" +
+					spotifyPlaylistId;
+				usersController
+					.checkUserAndRefresh(Michael)
+					.then(user => {
+						const tokenStr = "Bearer " + user.accessToken;
+						let dbPlaylistPromise = db.TrackList
+							.findById(playlistId)
+							.populate({
+								path: "tracks",
+								options: { sort: { order: 1 } }
+							});
+						let spotifyPlaylistPromise = axios.get(
+							getSpotifyPlaylistUrl,
+							{
+								headers: {
+									Authorization: tokenStr,
+									"Content-Type": "application/json"
+								}
+							}
+						);
+						Promise.all([dbPlaylistPromise, spotifyPlaylistPromise])
+							.then(values => {
+								const dbPlaylist = values[0];
+								const spotifyPlaylist = values[1].data;
+								const compareObject = compareTrackOrder(
+									dbPlaylist,
+									spotifyPlaylist
+								);
+								if (!compareObject.needsUpdating) {
+									return;
+								}
+								const deleteUrl =
+									"https://api.spotify.com/v1/users/" +
+									Michael.spotifyId +
+									"/playlists/" +
+									spotifyPlaylistId +
+									"/tracks";
+								const deleteBody = {
+									positions: compareObject.positionsToRemove,
+									snapshot_id: spotifyPlaylist.snapshot_id
+								};
+								if (
+									compareObject.positionsToRemove.length === 0
+								) {
+									console.log(
+										"No tracks to delete: skipping to add"
+									);
+									module.exports
+										.addTracksToSpotify(
+											spotifyPlaylist,
+											compareObject.tracksToAdd,
+											user
+										)
+										.then(spotifyPlaylistId => {
+											console.log(
+												"Just updated spotifyPlaylist: " +
+													spotifyPlaylistId
+											);
+										})
+										.catch(err => {
+											console.log(
+												"sync2 failed adding new tracks"
+											);
+											console.log(err);
+											//res.status(422).json(err);
+										});
+								} else {
+									axios
+										.delete(deleteUrl, {
+											data: deleteBody,
+											headers: {
+												Authorization: tokenStr,
+												"Content-Type":
+													"application/json"
+											}
+										})
+										.then(pl => {
+											module.exports
+												.addTracksToSpotify(
+													spotifyPlaylist,
+													compareObject.tracksToAdd,
+													user
+												)
+												.then(spotifyPlaylistId => {
+													console.log(
+														"Just updated spotifyPlaylist: " +
+															spotifyPlaylistId
+													);
+												})
+												.catch(err => {
+													console.log(
+														"sync2 failed adding new tracks"
+													);
+													console.log(err);
+													//res.status(422).json(err);
+												});
+										})
+										.catch(err => {
+											console.log(
+												"sync2 failed deleting"
+											);
+											console.log(err);
+										});
+								}
+							})
+							.catch(err => {
+								console.log("sync2 failed at promiseAll");
+								console.log(err);
+							});
+					})
+					.catch(err => {
+						console.log("sync2 failed refreshing access token");
+						console.log(err);
+					});
+			})
+			.catch(err => {
+				console.log("sync2 failed getting Michael");
+			});
+		compareTrackOrder = (dbPlaylist, spotifyPlaylist) => {
+			// console.log("-------DB order:--------");
+			const dbPlaylistSpotifyTracks = dbPlaylist.tracks.map(track => {
+				// console.log(track.name);
+				return track.spotifyId;
+			});
+			// console.log("-----Spotify order:-----");
+			const spotifyPlaylistSpotifyTracks = spotifyPlaylist.tracks.items.map(
+				track => {
+					// console.log(track.track.name);
+					return track.track.id;
+				}
+			);
+			const firstDeviationIndex = arrayCompare(
+				dbPlaylistSpotifyTracks,
+				spotifyPlaylistSpotifyTracks
+			);
+			if (firstDeviationIndex === -1) {
+				return { needsUpdating: false };
+			}
+			const spotifyPlaylistLength = spotifyPlaylistSpotifyTracks.length;
+			let positionsToRemove = [];
+			for (let i = firstDeviationIndex; i < spotifyPlaylistLength; i++) {
+				positionsToRemove.push(i);
+			}
+			const tracksToAdd = dbPlaylistSpotifyTracks.slice(
+				firstDeviationIndex
+			);
+			// console.log("--------------------------");
+			// console.log("First deviation: " + firstDeviationIndex);
+			// console.log("Removing tracks: " + positionsToRemove);
+			// console.log("Adding tracks: " + tracksToAdd);
+			return {
+				needsUpdating: true,
+				tracksToAdd: tracksToAdd,
+				positionsToRemove: positionsToRemove
+			};
+		};
+		function arrayCompare(db, s) {
+			//console.log("Comparing tracklists:");
+			for (let i = 0; i < s.length; i++) {
+				//console.log(s[i] + " vs. " + db[i]);
+				if (s[i] !== db[i]) {
+					return i;
+				}
+			}
+			if (db.length > s.length) {
+				return s.length;
+			}
+			return -1;
+		}
+	},
+
 	syncWithSpotify: (spotifyPlaylistId, newTrackList, playedTracks) => {
 		//This needs to check which songs have played, then reorder the spotify playlist if need be
 		//Count number of played songs, then just nuke the next 100 songs
@@ -648,7 +839,9 @@ module.exports = {
 									}
 								}
 							});
-							lastTime = lastTime - plObj.tracks[req.body.trackNum].duration;
+							lastTime =
+								lastTime -
+								plObj.tracks[req.body.trackNum].duration;
 							for (let i = req.body.trackNum - 1; i >= 0; i--) {
 								//console.log(plObj.tracks[i].playedAt);
 								if (plObj.tracks[i].playedAt) {
@@ -728,6 +921,9 @@ module.exports = {
 												"Destroyed old timeout!"
 											);
 										}
+										module.exports.reorderPlaylist(
+											req.body.playlistId
+										);
 										playlistTimeouts[
 											req.body.playlistId
 										] = setTimeout(function() {
@@ -736,6 +932,12 @@ module.exports = {
 												req.body.trackNum
 											);
 										}, duration);
+										setTimeout(function() {
+											module.exports.syncWithSpotify2(
+												req.body.playlistId,
+												plObj.spotifyPlaylistId
+											);
+										}, duration - checkBeforeSeconds);
 									})
 									.catch(err => {
 										console.log(
@@ -806,14 +1008,18 @@ module.exports = {
 					);
 					clientsController.refresh(playlistId);
 					if (playlistTimeouts[playlistId]) {
-						clearTimeout(playlistTimeouts[req.body.playlistId]);
+						clearTimeout(playlistTimeouts[playlistId]);
 						console.log("Destroyed old timeout!");
 					}
-					playlistTimeouts[
-						playlistId
-					] = setTimeout(function() {
+					playlistTimeouts[playlistId] = setTimeout(function() {
 						module.exports.updatePlaying(playlistId, nextTrackNum);
 					}, duration);
+					setTimeout(function() {
+						module.exports.syncWithSpotify2(
+							playlistId,
+							plObj.spotifyPlaylistId
+						);
+					}, duration - checkBeforeSeconds);
 				});
 			});
 	},

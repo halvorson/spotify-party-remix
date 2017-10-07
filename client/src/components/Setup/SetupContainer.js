@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import Setup from "./Setup";
-import Container from "../Bootstrap/Container";
 import API from "../../utils/API";
 
 class SetupContainer extends Component {
@@ -69,7 +68,7 @@ class SetupContainer extends Component {
     //console.log(event.target);
     const target = event.target;
     const value =
-      target.type === "checkbox" || target.type === "ratio"
+      target.type === "checkbox" || target.type === "radio"
         ? target.checked
         : target.value;
     const name = target.name;
@@ -85,19 +84,19 @@ class SetupContainer extends Component {
     //console.log(this.props);
     //console.log(this.spotifyPlaylist.getCheckedTracks());
     const newPlaylist = this.spotifyPlaylist.getCheckedTracks();
-    console.log(newPlaylist);
-    // API.createPlaylist(
-    //   newPlaylist,
-    //   this.props.user.spotifyId,
-    //   this.props.user.accessToken,
-    //   this.state.name,
-    //   "Michael's house",
-    //   this.props.user._id
-    // ).then(res => {
-    //   this.props.setPlaylistId(res.data.SPRId);
-    //   console.log(res);
-    //   //this.setState({ savedPlaylistId: res.SPRId });
-    // });
+    // console.log(newPlaylist);
+    API.createPlaylist(
+      newPlaylist,
+      this.props.user.spotifyId,
+      this.props.user.accessToken,
+      this.state.name,
+      "Michael's house",
+      this.props.user._id
+    ).then(res => {
+      this.props.setPlaylistId(res.data.SPRId);
+      console.log(res);
+      //this.setState({ savedPlaylistId: res.SPRId });
+    });
   };
 
   

@@ -11,7 +11,6 @@ class TrackAddButtonContainer extends Component {
   componentDidMount() {}
 
   addTrack = () => {
-    const albumArtSmallUrl = {};
     const track = {
       name: this.props.track.name,
       artist: this.props.track.artists[0].name,

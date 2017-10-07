@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import HostControlPanel from "./HostControlPanel";
-import API from "../../utils/API";
 
 class HostControlPanelContainer extends Component {
   constructor() {

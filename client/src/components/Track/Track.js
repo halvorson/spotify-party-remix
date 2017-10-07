@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import React from "react";
+// eslint-disable-next-line
 import styles from "./Track.css";
 
 const Track = props => (
@@ -7,7 +8,9 @@ const Track = props => (
 			"list-group-item list-group-item-action " +
 			(props.track.isPlaying
 				? "active"
-				: (props.track.hasPlayed || props.track.shouldBeDisabled) ? "disabled" : "")
+				: props.track.hasPlayed || props.track.shouldBeDisabled
+					? "disabled"
+					: "")
 		}
 		style={{ padding: 0 }}
 		onClick={props.onClick}
@@ -29,6 +32,7 @@ const Track = props => (
 									? props.track.album.images[1].url
 									: null)
 							}
+							alt="This is album art"
 							width={props.track.isPlaying ? "128px" : "64px"}
 						/>
 					</div>
@@ -44,7 +48,7 @@ const Track = props => (
 											props.track.artists[0].name}{" "}
 										{props.track.album.name
 											? ` -  ${props.track.album.name}`
-											: null}
+											: ` - ${props.track.album}`}
 									</h5>
 								</div>
 							</div>
@@ -59,7 +63,7 @@ const Track = props => (
 										props.track.artists[0].name}{" "}
 									{props.track.album.name
 										? ` -  ${props.track.album.name}`
-										: null}
+										: ` - ${props.track.album}`}
 								</div>
 							</div>
 						)}
@@ -76,6 +80,11 @@ const Track = props => (
 				{props.children}
 			</div>
 		</div>
+		{props.track.isPlaying ? (
+			<div className="progress">
+				<div className="progress-bar progress-bar-striped progress-bar-animated bg-secondary" style={{width: props.progressAmount+"%"}} role="progressbar" />
+			</div>
+		) : null}
 	</div>
 );
 

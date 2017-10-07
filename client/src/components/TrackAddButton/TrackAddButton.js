@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 const TrackAddButton = props => (
 	<div className="d-flex justify-content-end align-items-center" style={{height: "100%"}}>

@@ -23,7 +23,7 @@ router
 	.get(playlistsController.getPlaylistById);
 
 router
-	.route("/:playlistId/addTrack/")
+	.route("/:playlistId/addTrack")
 	.post(playlistsController.addTrackToPlaylist);
 
 module.exports = router;

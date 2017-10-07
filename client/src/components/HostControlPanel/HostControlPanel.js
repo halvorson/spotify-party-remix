@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+import React from "react";
+// eslint-disable-next-line
 import styles from "./HostControlPanel.css";
 
 const HostControlPanel = props => (

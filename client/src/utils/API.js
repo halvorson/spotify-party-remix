@@ -111,6 +111,34 @@ export default {
 				.post("/api/playlists/", playlistData)
 				.then(res => {
 					resolve(res);
+					console.log(res.data);
+					const spotifyPlaylistId = res.data.SpotifyPlaylistId;
+					const spotifyFollowUrl =
+						"https://api.spotify.com/v1/users/" +
+						"michael.t.halvorson" +
+						"/playlists/" +
+						spotifyPlaylistId +
+						"/followers";
+					const tokenStr = "Bearer " + token;
+					axios
+						.put(
+							spotifyFollowUrl,
+							{},
+							{
+								headers: {
+									Authorization: tokenStr
+								}
+							}
+						)
+						.then(res2 => {
+							console.log(
+								"You're now to the playlist you created. " +
+									"Check spotify to watch it evolve."
+							);
+						})
+						.catch(err => {
+							console.log(err);
+						});
 				})
 				.catch(err => {
 					reject(err);
@@ -134,16 +162,21 @@ export default {
 				trackNum: trackNum
 			})
 			.then(res => {
-				console.log(res);
+				//console.log(res);
 				if (res.data.success) {
 					const spotifyPlayUrl =
 						"https://api.spotify.com/v1/me/player/play";
 					const tokenStr = "Bearer " + user.accessToken;
 					const contextUriStr =
-						"spotify:user:"+user.spotifyId+":playlist:" +
+						"spotify:user:" +
+						user.spotifyId +
+						":playlist:" +
 						res.data.spotifyPlaylistId;
-					console.log(contextUriStr);
-					console.log(trackNum);
+					//console.log(contextUriStr);
+					//console.log(trackNum);
+					// const shuffleUrl =
+					// 	"https://api.spotify.com/v1/me/player/shuffle";
+
 					axios
 						.put(
 							spotifyPlayUrl,
@@ -157,29 +190,46 @@ export default {
 								}
 							}
 						)
-						.then(res => {
-							console.log(res);
+						.then(res2 => {
+							if ((res2.status === 204)) {
+								const nextTrackUrl =
+									"https://api.spotify.com/v1/me/player/next";
+								axios
+									.post(
+										nextTrackUrl,
+										{},
+										{
+											headers: {
+												Authorization: tokenStr,
+												"Content-Type":
+													"application/json"
+											}
+										}
+									)
+									.then(resSkip => {
+										console.log("Started playing!");
+									});
+							}
 						});
 				}
 			});
 	},
 	addTrackToPlaylist: function(track, playlistId) {
 		console.log("Api call to add track triggered!");
-		return axios.post("api/playlists/" + playlistId + "/addTrack/", {
+		return axios.post("/api/playlists/" + playlistId + "/addTrack", {
 			track: track
 		});
 	},
 	getDbPlaylist: function(playlistId, userId) {
-		console.log(playlistId);
-		console.log(userId);
+		//console.log(playlistId);
+		//console.log(userId);
 		return axios.get("/api/playlists/" + playlistId + "/user/" + userId);
 	},
 	searchDbPlaylists: function(searchTerm, searchType) {
 		console.log(searchType + ": " + searchTerm);
-		return axios
-			.get("/api/playlists/search", {
-				params: { searchTerm: searchTerm, searchType: searchType }
-			});
+		return axios.get("/api/playlists/search", {
+			params: { searchTerm: searchTerm, searchType: searchType }
+		});
 	},
 	deleteSavedArticle: function(id) {
 		return axios.delete("/api/articles/" + id);
