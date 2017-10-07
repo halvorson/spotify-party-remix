@@ -15,7 +15,7 @@ const Track = props => (
 		<div className="row">
 			<div
 				className={
-					props.controlPanelSize == "small"
+					props.controlPanelSize === "small"
 						? "col-md-10 col-sm-10 col-10"
 						: "col-md-9 col-sm-8 col-7"
 				}
@@ -68,7 +68,7 @@ const Track = props => (
 			</div>
 			<div
 				className={
-					props.controlPanelSize == "small"
+					props.controlPanelSize === "small"
 						? "col-md-2 col-sm-2 col-2"
 						: "col-md-3 col-sm-4 col-5"
 				}
