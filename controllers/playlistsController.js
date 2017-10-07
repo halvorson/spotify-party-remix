@@ -448,8 +448,9 @@ module.exports = {
 				if (bulkWriteObj) {
 					db.Track
 						.bulkWrite(bulkWriteObj)
-						.then(res => {
-							clientsController.refresh(req.body.playlistId);
+						.then(res2 => {
+							res.status(200).json({ text: "playlistReset" });
+							clientsController.refresh(req.params.id);
 						})
 						.catch(err => {
 							console.log("resetPlaylist failed");
