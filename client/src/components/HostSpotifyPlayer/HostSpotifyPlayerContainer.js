@@ -136,7 +136,7 @@ class HostSpotifyPlayerContainer extends Component {
                 );
               })}
             </div>
-            invite friends to contribute at {" "}
+            Invite friends to contribute at {" "}
             <a
               href={
                 window.location.protocol +
