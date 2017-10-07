@@ -83,7 +83,7 @@ class HostSpotifyPlayerContainer extends Component {
         <HostSpotifyPlayer>
           <div className="card-body">
             <div>
-              <div className="d-flex justify-content-start">
+              <div className="d-flex justify-content-start flex-wrap">
                 <div className="p-2">
                   <button
                     className="btn btn-primary"

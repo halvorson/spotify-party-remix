@@ -3,7 +3,7 @@ import PlaylistRow from "../PlaylistRow";
 
 const SearchPlaylist = props => (
 	<div className="card">
-	<div className="card-header bg-primary text-white align-middle d-flex justify-content-start p-2">
+		<div className="card-header bg-primary text-white align-middle d-flex justify-content-start p-2">
 			<div className="p-2">
 				<h4>Select a playlist</h4>
 			</div>
@@ -19,7 +19,7 @@ const SearchPlaylist = props => (
 			</div>
 		</div>
 		<div className="card-body">
-			<div className="form-row d-flex p-2 justify-content-start">
+			<div className="form-row d-flex p-2 justify-content-start flex-wrap">
 				<div className="p-2 col">
 					<input
 						style={{ minWidth: "200px", width: "100%" }}
@@ -39,7 +39,7 @@ const SearchPlaylist = props => (
 						Search
 					</button>
 				</div>
-				<div className="p-2 align-middle" >
+				<div className="p-2 align-middle">
 					<span className="align-middle">or</span>
 				</div>
 

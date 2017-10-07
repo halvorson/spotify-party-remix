@@ -63,7 +63,7 @@ const Track = props => (
 										props.track.artists[0].name}{" "}
 									{props.track.album.name
 										? ` -  ${props.track.album.name}`
-										: ` - ${props.track.album}`}
+										: null}
 								</div>
 							</div>
 						)}
