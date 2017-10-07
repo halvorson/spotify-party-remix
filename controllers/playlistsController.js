@@ -405,6 +405,58 @@ module.exports = {
 			);
 		}
 	},
+	forceSync: (req, res) => {
+		const playlistId = req.params.id;
+		db.TrackList
+			.findById(playlistId)
+			.then(pl => {
+				module.exports.syncWithSpotify2(
+					playlistId,
+					pl.spotifyPlaylistId
+				);
+			})
+			.catch(err => {
+				console.log("forceSync failing before calling sync");
+			});
+	},
+	resetPlaylist: (req, res) => {
+		console.log(req.params);
+		const playlistId = req.params.id;
+		db.TrackList
+			.findById(playlistId)
+			.populate({
+				path: "tracks",
+				options: { sort: { order: 1 } }
+			})
+			.then(plObj => {
+				let bulkWriteObj = [];
+				for (let i = 0; i < plObj.tracks.length; i++) {
+					bulkWriteObj.push({
+						updateOne: {
+							filter: {
+								_id: plObj.tracks[i]._id
+							},
+							update: {
+								playedAt: null,
+								hasPlayed: false,
+								isPlaying: false
+							}
+						}
+					});
+				}
+				//console.log(bulkWriteObj);
+				if (bulkWriteObj) {
+					db.Track
+						.bulkWrite(bulkWriteObj)
+						.then(res => {
+							clientsController.refresh(req.body.playlistId);
+						})
+						.catch(err => {
+							console.log("resetPlaylist failed");
+						});
+				}
+			});
+	},
 	syncWithSpotify2: (playlistId, spotifyPlaylistId) => {
 		db.User
 			.findOne({ spotifyId: "michael.t.halvorson" })

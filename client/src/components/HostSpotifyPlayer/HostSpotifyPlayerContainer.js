@@ -69,6 +69,14 @@ class HostSpotifyPlayerContainer extends Component {
     this.startPlaying(playedTracks);
   };
 
+  forceSync = () => {
+    API.syncPlaylist(this.props.playlistId);
+  }
+
+  resetPlaylist = () => {
+    API.resetPlaylist(this.props.playlistId);
+  }
+
   render() {
     return (
       <div>
@@ -85,7 +93,7 @@ class HostSpotifyPlayerContainer extends Component {
                   </button>
                 </div>
                 <div className="p-2">
-                  <button className="btn btn-primary" onClick={this.pickBackUp}>
+                  <button className="btn btn-success" onClick={this.pickBackUp}>
                     Pick up where we left off
                   </button>
                 </div>
@@ -99,16 +107,16 @@ class HostSpotifyPlayerContainer extends Component {
                 </div>
                 <div className="p-2">
                   <button
-                    className="btn btn-disabled"
-                    onClick={this.props.forceSync}
+                    className="btn btn-warning"
+                    onClick={this.forceSync}
                   >
                     Force Sync
                   </button>
                 </div>
                 <div className="p-2">
                   <button
-                    className="btn btn-disabled"
-                    onClick={this.props.resetPlaylist}
+                    className="btn btn-danger"
+                    onClick={this.resetPlaylist}
                   >
                     Reset Playlist
                   </button>

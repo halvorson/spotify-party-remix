@@ -12,6 +12,11 @@ router.route("/start").post(playlistsController.startPlaying);
 router.route("/search").get(playlistsController.searchPlaylists);
 
 // Matches with "/api/playlists/:id"
+
+router.route("/:id/reset").put(playlistsController.resetPlaylist);
+
+router.route("/:id/sync").put(playlistsController.forceSync);
+
 router
 	.route("/:id")
 	.get(playlistsController.getPlaylistById)

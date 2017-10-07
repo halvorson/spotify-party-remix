@@ -9,6 +9,28 @@ const socket = openSocket(
 // Export an object containing methods we'll use for accessing the Dog.Ceo API
 
 export default {
+	//User API
+	getUser: () => {
+		return new Promise((resolve, reject) => {
+			axios.get("/auth/user").then(response => {
+				//console.log(response.data);
+				if (!!response.data.user) {
+					resolve(response.data.user);
+				} else {
+					reject(response.error);
+				}
+			});
+		});
+	},
+	refreshUserToken: user => {
+		return new Promise((resolve, reject) => {
+			axios.get("/auth/refreshToken").then(user => {
+				//console.log(response.data);
+				resolve(user);
+			});
+		});
+	},
+	// Spotify API
 	searchSpotify: function(searchQuery, type, token) {
 		const query = { q: searchQuery, type: type };
 		const url = "https://api.spotify.com/v1/search";
@@ -20,9 +42,6 @@ export default {
 				Authorization: tokenStr
 			}
 		});
-	},
-	getAllPlaylists: () => {
-		return axios.get("/api/playlists");
 	},
 	getSpotifyPlaylist: function(url, token) {
 		const tokenStr = "Bearer " + token;
@@ -44,26 +63,66 @@ export default {
 			}
 		});
 	},
-	getUser: () => {
-		return new Promise((resolve, reject) => {
-			axios.get("/auth/user").then(response => {
-				//console.log(response.data);
-				if (!!response.data.user) {
-					resolve(response.data.user);
-				} else {
-					reject(response.error);
+	startPlaying: (user, playlistId, trackNum, spotifyPlaylistId) => {
+		axios
+			.post("/api/playlists/start", {
+				requestorSpotifyId: user.spotifyId,
+				requestorUserId: user._id,
+				playlistId: playlistId,
+				trackNum: trackNum
+			})
+			.then(res => {
+				if (res.data.success) {
+					const spotifyPlayUrl =
+						"https://api.spotify.com/v1/me/player/play";
+					const tokenStr = "Bearer " + user.accessToken;
+					const contextUriStr =
+						"spotify:user:" +
+						user.spotifyId +
+						":playlist:" +
+						res.data.spotifyPlaylistId;
+					// const shuffleUrl =
+					// 	"https://api.spotify.com/v1/me/player/shuffle";
+
+					axios
+						.put(
+							spotifyPlayUrl,
+							{
+								context_uri: contextUriStr,
+								offset: { position: trackNum }
+							},
+							{
+								headers: {
+									Authorization: tokenStr
+								}
+							}
+						)
+						.then(res2 => {
+							if (res2.status === 204) {
+								const nextTrackUrl =
+									"https://api.spotify.com/v1/me/player/next";
+								axios
+									.post(
+										nextTrackUrl,
+										{},
+										{
+											headers: {
+												Authorization: tokenStr,
+												"Content-Type":
+													"application/json"
+											}
+										}
+									)
+									.then(resSkip => {
+										console.log("Started playing!");
+									});
+							}
+						});
 				}
 			});
-		});
 	},
-	refreshUserToken: user => {
-		return new Promise((resolve, reject) => {
-			axios.get("/auth/refreshToken").then(user => {
-				//console.log(response.data);
-				resolve(user);
-			});
-		});
-	},
+
+	// Socket.io
 	subscribeToTimer: (interval, cb) => {
 		socket.on("timer", timestamp => cb(null, timestamp));
 		socket.emit("subscribeToTimer", interval);
@@ -80,6 +139,8 @@ export default {
 	unsubscribeFromTimer: () => {
 		socket.emit("unsubscribeFromTimer", null);
 	},
+
+	// DB/backend
 	createPlaylist: function(
 		trackList,
 		userName,
@@ -152,63 +213,8 @@ export default {
 			playlistId: playlistId
 		});
 	},
-	startPlaying: (user, playlistId, trackNum, spotifyPlaylistId) => {
-		axios
-			.post("/api/playlists/start", {
-				requestorSpotifyId: user.spotifyId,
-				requestorUserId: user._id,
-				playlistId: playlistId,
-				trackNum: trackNum
-			})
-			.then(res => {
-				if (res.data.success) {
-					const spotifyPlayUrl =
-						"https://api.spotify.com/v1/me/player/play";
-					const tokenStr = "Bearer " + user.accessToken;
-					const contextUriStr =
-						"spotify:user:" +
-						user.spotifyId +
-						":playlist:" +
-						res.data.spotifyPlaylistId;
-					// const shuffleUrl =
-					// 	"https://api.spotify.com/v1/me/player/shuffle";
-
-					axios
-						.put(
-							spotifyPlayUrl,
-							{
-								context_uri: contextUriStr,
-								offset: { position: trackNum }
-							},
-							{
-								headers: {
-									Authorization: tokenStr
-								}
-							}
-						)
-						.then(res2 => {
-							if ((res2.status === 204)) {
-								const nextTrackUrl =
-									"https://api.spotify.com/v1/me/player/next";
-								axios
-									.post(
-										nextTrackUrl,
-										{},
-										{
-											headers: {
-												Authorization: tokenStr,
-												"Content-Type":
-													"application/json"
-											}
-										}
-									)
-									.then(resSkip => {
-										console.log("Started playing!");
-									});
-							}
-						});
-				}
-			});
+	getAllPlaylists: () => {
+		return axios.get("/api/playlists");
 	},
 	addTrackToPlaylist: function(track, playlistId) {
 		return axios.post("/api/playlists/" + playlistId + "/addTrack", {
@@ -223,10 +229,10 @@ export default {
 			params: { searchTerm: searchTerm, searchType: searchType }
 		});
 	},
-	deleteSavedArticle: function(id) {
-		return axios.delete("/api/articles/" + id);
+	syncPlaylist: (playlistId) => {
+		return axios.put("/api/playlists/"+playlistId+"/sync");
 	},
-	saveArticle: function(articleData) {
-		return axios.post("/api/articles", articleData);
+	resetPlaylist: (playlistId) => {
+		return axios.put("/api/playlists/"+playlistId+"/reset");
 	}
 };

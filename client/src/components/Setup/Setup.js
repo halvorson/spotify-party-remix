@@ -39,7 +39,13 @@ const Setup = props => (
 				{props.selectedPlaylistId ? (
 					<div className="col-md-8">
 						<h4>Select songs to import</h4>
-						<div style={{ overflowY: "scroll", maxHeight: "400px", overflowX: "hidden"}}>
+						<div
+							style={{
+								overflowY: "scroll",
+								maxHeight: "400px",
+								overflowX: "hidden"
+							}}
+						>
 							<SpotifyPlaylistContainer
 								ref={props.setRef}
 								user={props.user}
@@ -75,14 +81,16 @@ const Setup = props => (
 				</form>
 			</div>
 			<hr />
-			<div className="col-sm-12">
-				<button
-					type="submit"
-					className="btn btn-secondary btn-block"
-					onClick={props.goHome}
-				>
-					Go back
-				</button>
+			<div className="row">
+				<div className="col-sm-12">
+					<button
+						type="submit"
+						className="btn btn-secondary btn-block"
+						onClick={props.goHome}
+					>
+						Go back
+					</button>
+				</div>
 			</div>
 		</div>
 		{props.children}

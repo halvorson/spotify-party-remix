@@ -25,6 +25,20 @@ class SpotifyPlaylistContainer extends Component {
       .catch(err => console.log(err));
   }
 
+  componentWillReceiveProps(nextProps) {
+    API.getSpotifyPlaylist(nextProps.playlistHref, nextProps.user.accessToken)
+      .then(res => {
+        //console.log(res.data.tracks.items);
+        let items = res.data.tracks.items;
+        items.forEach(function(item) {
+          item.toBeImported = true;
+        });
+        this.setState({ trackList: items });
+        //console.log(items);
+      })
+      .catch(err => console.log(err));
+  }
+
   componentDidMount() {}
 
   onTrackClick = trackId => {

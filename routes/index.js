@@ -35,7 +35,7 @@ router.get(
 // this route is just used to get the user basic info
 router.get("/auth/user", (req, res, next) => {
 	console.log("===== user!!======");
-	console.log(req.user.spotifyId);
+	console.log(req.user ? req.user.spotifyId: null);
 	//console.log(req);
 	if (req.user) {
 		return res.json({ user: req.user });
@@ -45,7 +45,7 @@ router.get("/auth/user", (req, res, next) => {
 });
 
 router.get("/auth/refreshToken", (req, res, next) => {
-	console.log("-------Refreshing Token--------");
+	//console.log("-------Refreshing Token--------");
 	//console.log("Old token: " + req.user.accessToken);
 	usersController.refreshToken(req.user).then(newUser => {
 		//console.log("New token:" + newUser.accessToken);
