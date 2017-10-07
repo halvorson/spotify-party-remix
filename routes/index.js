@@ -27,7 +27,7 @@ router.get(
 	passportSpotify.authenticate("spotify", { failureRedirect: "/login" }),
 	function(req, res) {
 		// Successful authentication
-		//console.log(req.user);
+		console.log(req.user);
 		res.redirect("/");
 	}
 );
@@ -35,8 +35,8 @@ router.get(
 // this route is just used to get the user basic info
 router.get("/auth/user", (req, res, next) => {
 	console.log("===== user!!======");
-	console.log(req.user ? req.user.spotifyId: null);
-	//console.log(req);
+	console.log(req.user ? req.user.spotifyId : null);
+	// console.log(req);
 	if (req.user) {
 		return res.json({ user: req.user });
 	} else {
@@ -80,14 +80,15 @@ router.get("/secured", authenticationMiddleware(), function(req, res) {
 router.use(function(req, res) {
 	//res.send("hello, world!");
 
+	console.log(
+		"this is hitting the catchall at:" +
+			__dirname +
+			" and sending " +
+			path.join(__dirname, "../client/public/index.html")
+	);
+
 	res.sendFile(path.join(__dirname, "../client/build/index.html"));
 
-	// console.log(
-	// 	"this is hitting the catchall at:" +
-	// 		__dirname +
-	// 		" and sending " +
-	// 		path.join(__dirname, "../client/public/index.html")
-	// );
 	// res.sendFile(path.join(__dirname, "../client/build/index.html"));
 });
 
