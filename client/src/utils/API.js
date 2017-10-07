@@ -67,7 +67,7 @@ export default {
 	subscribeToTimer: (interval, cb) => {
 		socket.on("timer", timestamp => cb(null, timestamp));
 		socket.emit("subscribeToTimer", interval);
-		console.log(process.env.NODE_ENV);
+		//console.log(process.env.NODE_ENV);
 	},
 	subscribeToPlaylistUpdates: (playlistId, cb) => {
 		socket.on("refresh", refresh => cb(null, refresh));
@@ -106,12 +106,12 @@ export default {
 				creatorUserName: userName,
 				totalVotes: 3
 			};
-			console.log(playlistData);
+			//console.log(playlistData);
 			axios
 				.post("/api/playlists/", playlistData)
 				.then(res => {
 					resolve(res);
-					console.log(res.data);
+					//console.log(res.data);
 					const spotifyPlaylistId = res.data.SpotifyPlaylistId;
 					const spotifyFollowUrl =
 						"https://api.spotify.com/v1/users/" +
@@ -132,7 +132,7 @@ export default {
 						)
 						.then(res2 => {
 							console.log(
-								"You're now to the playlist you created. " +
+								"You're now following the playlist you created. " +
 									"Check spotify to watch it evolve."
 							);
 						})
@@ -146,7 +146,6 @@ export default {
 		});
 	},
 	voteForTrack: function(trackId, userId, votes, playlistId) {
-		console.log("voting for playlistId: " + playlistId);
 		return axios.post("/api/tracks/" + trackId + "/vote", {
 			voter: userId,
 			votes: votes,
@@ -162,7 +161,6 @@ export default {
 				trackNum: trackNum
 			})
 			.then(res => {
-				//console.log(res);
 				if (res.data.success) {
 					const spotifyPlayUrl =
 						"https://api.spotify.com/v1/me/player/play";
@@ -172,8 +170,6 @@ export default {
 						user.spotifyId +
 						":playlist:" +
 						res.data.spotifyPlaylistId;
-					//console.log(contextUriStr);
-					//console.log(trackNum);
 					// const shuffleUrl =
 					// 	"https://api.spotify.com/v1/me/player/shuffle";
 
@@ -215,18 +211,14 @@ export default {
 			});
 	},
 	addTrackToPlaylist: function(track, playlistId) {
-		console.log("Api call to add track triggered!");
 		return axios.post("/api/playlists/" + playlistId + "/addTrack", {
 			track: track
 		});
 	},
 	getDbPlaylist: function(playlistId, userId) {
-		//console.log(playlistId);
-		//console.log(userId);
 		return axios.get("/api/playlists/" + playlistId + "/user/" + userId);
 	},
 	searchDbPlaylists: function(searchTerm, searchType) {
-		console.log(searchType + ": " + searchTerm);
 		return axios.get("/api/playlists/search", {
 			params: { searchTerm: searchTerm, searchType: searchType }
 		});

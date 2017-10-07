@@ -58,7 +58,8 @@ class SpotifyPlaylistContainer extends Component {
             ? item.track.album.images[0].url
             : null,
           addedBy: userId,
-          duration: item.track.duration_ms
+          duration: item.track.duration_ms,
+          totalVotes: 3
         });
       }
     });

@@ -46,9 +46,9 @@ router.get("/auth/user", (req, res, next) => {
 
 router.get("/auth/refreshToken", (req, res, next) => {
 	console.log("-------Refreshing Token--------");
-	console.log("Old token: " + req.user.accessToken);
+	//console.log("Old token: " + req.user.accessToken);
 	usersController.refreshToken(req.user).then(newUser => {
-		console.log("New token:" + newUser.accessToken);
+		//console.log("New token:" + newUser.accessToken);
 		return res.json({ user: newUser });
 	});
 });

@@ -33,7 +33,7 @@ const Playlist = props => (
 					);
 				})}
 			</div>
-			<div>Time from server is {props.timestamp}</div>
+			//<div>Time from server is {props.timestamp}</div>
 		</div>
 		{props.children}
 	</div>

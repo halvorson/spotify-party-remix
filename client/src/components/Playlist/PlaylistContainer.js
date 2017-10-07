@@ -6,11 +6,11 @@ class PlaylistContainer extends Component {
   constructor() {
     super();
     this.state = { trackList: [], timestamp: "no timestamp yet" };
-    API.subscribeToTimer(1000, (err, timestamp) =>
-      this.setState({
-        timestamp
-      })
-    );
+    // API.subscribeToTimer(1000, (err, timestamp) =>
+    //   this.setState({
+    //     timestamp
+    //   })
+    // );
   }
 
   componentDidMount() {

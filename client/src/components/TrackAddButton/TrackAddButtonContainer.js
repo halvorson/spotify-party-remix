@@ -22,7 +22,7 @@ class TrackAddButtonContainer extends Component {
       addedBy: this.props.user._id,
       duration: this.props.track.duration_ms
     };
-    console.log("addTrack button pressed");
+    //console.log("addTrack button pressed");
     API.addTrackToPlaylist(track, this.props.playlistId);
   }
 
